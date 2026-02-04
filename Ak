@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Pro Exam Portal</title>
+    <style>
+        :root { --primary: #1a73e8; --success: #28a745; --danger: #dc3545; --accent: #ff9800; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 15px; }
+        .timer { font-size: 20px; font-weight: bold; color: var(--danger); }
+        
+        /* विषय दिखाने वाला सुंदर टैग */
+        .subject-badge { 
+            display: inline-block; 
+            background: var(--accent); 
+            color: white; 
+            padding: 5px 15px; 
+            border-radius: 20px; 
+            font-size: 14px; 
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .subject-btn { padding: 12px 25px; margin: 8px; border: none; border-radius: 8px; cursor: pointer; background: var(--primary); color: white; font-weight: bold; transition: 0.3s; }
+        .subject-btn:hover { transform: scale(1.05); background: #1557b0; }
+        
+        .option { display: block; width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; cursor: pointer; text-align: left; font-size: 16px; transition: 0.3s; background: #fff; }
+        .option:hover { background: #f8f9fa; border-color: var(--primary); }
+        
+        .correct { background: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background: var(--danger) !important; color: white; border-color: var(--danger); }
+        
+        .report-card { display: none; text-align: center; }
+        .stat-box { display: flex; justify-content: space-around; margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <div id="start-screen">
+        <h1 style="color: var(--primary);">🎓 10th बोर्ड परीक्षा पोर्टल</h1>
+        <p>अपनी तैयारी जांचने के लिए विषय चुनें। (30 प्रश्न | 60 मिनट | 100 अंक)</p>
+        <div id="subject-list" style="margin-top: 25px;"></div>
+    </div>
+
+    <div id="quiz-screen" style="display:none;">
+        <div class="header">
+            <span style="color: #5f6368; font-weight: bold;">10th बोर्ड परीक्षा</span>
+            <div class="timer">⏳ <span id="time-left">60:00</span></div>
+        </div>
+        
+        <div id="progress" style="margin-bottom: 5px; color: #1a73e8; font-weight: bold;">प्रश्न 1/30</div>
+        
+        <div id="current-subject-tag" class="subject-badge">विषय लोड हो रहा है...</div>
+        
+        <h2 id="question-text" style="margin-top: 0;">लोड हो रहा है...</h2>
+        <div id="options-container"></div>
+    </div>
+
+    <div id="result-screen" class="report-card">
+        <h1>📊 रिजल्ट रिपोर्ट कार्ड</h1>
+        <div class="stat-box">
+            <div><h3 style="margin:0;">कुल स्कोर</h3><p id="final-score" style="font-size: 24px; font-weight: bold; color: var(--primary);">0/100</p></div>
+            <div><h3 style="margin:0;">सही</h3><p id="correct-count" style="font-size: 24px; font-weight: bold; color: var(--success);">0</p></div>
+            <div><h3 style="margin:0;">एक्यूरेसी</h3><p id="accuracy" style="font-size: 24px; font-weight: bold; color: var(--accent);">0%</p></div>
+        </div>
+        <button class="subject-btn" onclick="location.reload()">नई परीक्षा शुरू करें</button>
+    </div>
+</div>
+
+<script>
+    let allQuestions = [];
+    let quizQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let timeLeft = 3600; 
+    let timerInterval;
+
+    async function loadQuestions() {
+        try {
+            const res = await fetch('questions.json?' + new Date().getTime());
+            allQuestions = await res.json();
+            const subs = [...new Set(allQuestions.map(q => q.subject))];
+            const list = document.getElementById('subject-list');
+            subs.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = 'subject-btn';
+                btn.innerText = s;
+                btn.onclick = () => startQuiz(s);
+                list.appendChild(btn);
+            });
+        } catch(e) { console.error("Data error", e); }
+    }
+
+    function startQuiz(subject) {
+        let filtered = allQuestions.filter(q => q.subject === subject);
+        quizQuestions = filtered.sort(() => 0.5 - Math.random()).slice(0, 30);
+        
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        
+        startTimer();
+        showQuestion();
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            let mins = Math.floor(timeLeft / 60);
+            let secs = timeLeft % 60;
+            document.getElementById('time-left').innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (timeLeft <= 0) endQuiz();
+        }, 1000);
+    }
+
+    function showQuestion() {
+        if (currentIndex >= quizQuestions.length) return endQuiz();
+        
+        let q = quizQuestions[currentIndex];
+        
+        // विषय और प्रश्न अपडेट करना
+        document.getElementById('current-subject-tag').innerText = "विषय: " + q.subject;
+        document.getElementById('progress').innerText = `प्रश्न ${currentIndex + 1}/30`;
+        document.getElementById('question-text').innerText = q.question;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q.answer);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const allBtns = document.querySelectorAll('.option');
+        allBtns.forEach(b => b.disabled = true);
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            allBtns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+        }
+
+        setTimeout(() => {
+            currentIndex++;
+            showQuestion();
+        }, 1200);
+    }
+
+    function endQuiz() {
+        clearInterval(timerInterval);
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        let totalMarks = Math.round((score / 30) * 100);
+        let accuracy = Math.round((score / 30) * 100);
+        
+        document.getElementById('final-score').innerText = `${totalMarks}/100`;
+        document.getElementById('correct-count').innerText = score;
+        document.getElementById('accuracy').innerText = `${accuracy}%`;
+    }
+
+    window.onload = loadQuestions;
+</script>
+
+</body>
+</html>

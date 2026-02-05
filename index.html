@@ -1,0 +1,104 @@
+import random
+import time
+import os
+
+# विषयों के अनुसार प्रश्नों का डेटाबेस
+subjects = {
+    "1. हिंदी": [
+        {"q": "कबीर दास की भाषा कौन सी थी?", "options": ["सधुक्कड़ी", "ब्रज", "अवधी", "खड़ी बोली"], "ans": "सधुक्कड़ी"},
+        {"q": "समास के कितने भेद होते हैं?", "options": ["6", "4", "5", "8"], "ans": "6"},
+    ],
+    "2. गणित": [
+        {"q": "सबसे छोटी अभाज्य संख्या (Prime Number) कौन सी है?", "options": ["2", "1", "3", "0"], "ans": "2"},
+        {"q": "वृत्त के क्षेत्रफल का सूत्र क्या है?", "options": ["πr²", "2πr", "πd", "2πr²"], "ans": "πr²"},
+    ],
+    "3. विज्ञान": [
+        {"q": "विटामिन C का सबसे अच्छा स्रोत क्या है?", "options": ["आंवला", "दूध", "सेब", "केला"], "ans": "आंवला"},
+        {"q": "ध्वनि की गति किसमें सबसे तेज होती है?", "options": ["लोहा (Steel)", "पानी", "हवा", "निर्वात"], "ans": "लोहा (Steel)"},
+    ]
+    # इसी तरह आप 'संस्कृत', 'अंग्रेजी' और 'समाजिक विज्ञान' जोड़ सकते हैं
+}
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def main():
+    clear_screen()
+    print("="*30)
+    print("  WELCOME TO PROFESSIONAL QUIZ  ")
+    print("="*30)
+    
+    name = input("\nअपना नाम लिखें: ")
+    
+    print("\nविषय चुनें:")
+    for sub in subjects.keys():
+        print(sub)
+    
+    choice_sub = input("\nविषय का नाम या नंबर टाइप करें: ")
+    
+    # विषय को मैच करना
+    selected_list = []
+    for key in subjects:
+        if choice_sub in key:
+            selected_list = subjects[key]
+            break
+
+    if not selected_list:
+        print("गलत विकल्प!")
+        return
+
+    # 15 प्रश्न चुनना (इमेज की शर्त #2)
+    random.shuffle(selected_list)
+    questions = selected_list[:15]
+    
+    score = 0
+    total = len(questions)
+
+    for i, q in enumerate(questions):
+        clear_screen()
+        print(f"छात्र: {name} | प्रश्न: {i+1}/{total}")
+        print("-" * 30)
+        print(f"\n{q['q']}")
+        
+        # उत्तर शफलिंग (इमेज की शर्त #2)
+        opts = q['options']
+        random.shuffle(opts)
+
+        for idx, opt in enumerate(opts):
+            print(f"{idx+1}. {opt}")
+
+        ans_idx = input("\nसही नंबर चुनें: ")
+        
+        try:
+            if opts[int(ans_idx)-1] == q['ans']:
+                print("\n\033[92m✔ सही उत्तर! (Green)\033[0m")
+                score += 1
+            else:
+                print(f"\n\033[91m✘ गलत! (Red)\033[0m \nसही उत्तर: {q['ans']}")
+        except:
+            print("\nगलत इनपुट!")
+
+        time.sleep(0.5) # 0.5 सेकंड का अंतराल (इमेज की शर्त #4)
+
+    # फाइनल रिपोर्ट कार्ड (इमेज की शर्त #5)
+    clear_screen()
+    accuracy = (score/total)*100
+    print("="*30)
+    print("      फाइनल रिपोर्ट कार्ड      ")
+    print("="*30)
+    print(f"नाम: {name}")
+    print(f"कुल प्रश्न: {total}")
+    print(f"सही उत्तर: {score}")
+    print(f"गलत उत्तर: {total - score}")
+    print(f"एक्यूरेसी: {accuracy:.2f}%")
+    
+    # रैंक (शर्त #1)
+    if accuracy >= 90: rank = "A+ (Topper)"
+    elif accuracy >= 60: rank = "B (Average)"
+    else: rank = "C (Need Study)"
+    
+    print(f"आपकी रैंक: {rank}")
+    print("="*30)
+
+if __name__ == "__main__":
+    main()

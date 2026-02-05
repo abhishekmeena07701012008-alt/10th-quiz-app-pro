@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz App Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root { --primary: #4285F4; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; text-align: center; }
+        .app-card { width: 100%; max-width: 480px; background: white; border-radius: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.1); margin: auto; overflow: hidden; border-top: 8px solid var(--primary); }
+        .btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-size: 18px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 12px; }
+        .install-banner { background: #fff3cd; padding: 15px; border-bottom: 2px solid #ffeeba; display: none; } /* डाउनलोड बैनर */
+        .hidden { display: none !important; }
+        .option-btn { background: #fff; border: 2px solid #eee; margin: 8px 0; text-align: left; padding: 15px; color: #444; }
+        .correct { background: #34A853 !important; color: white; }
+        .wrong { background: #EA4335 !important; color: white; }
+    </style>
+</head>
+<body>
+
+<div id="install-banner" class="install-banner">
+    <p style="margin:0 0 10px 0; font-weight:bold; color:#856404;">बेहतर अनुभव के लिए ऐप डाउनलोड करें!</p>
+    <button class="btn" id="install-btn" style="background:#ffc107; color:#000; padding:10px;">अभी Install करें</button>
+</div>
+
+<div class="app-card">
+    <div style="padding: 20px; background: linear-gradient(135deg, #4285F4, #34A853); color: white;">
+        <h1 style="margin:0;">10th Quiz App Pro</h1>
+        <p id="u-name-head">स्वागत है!</p>
+    </div>
+
+    <div id="loader" style="padding:40px;">लोड हो रहा है...</div>
+
+    <div class="content hidden" id="main-content" style="padding:20px;">
+        <div id="login-sec" class="hidden">
+            <button class="btn" id="google-login-btn">Google से लॉगिन करें</button>
+        </div>
+
+        <div id="dash-sec" class="hidden">
+            <div style="background:#e8f0fe; padding:20px; border-radius:20px; margin-bottom:20px; text-align:left;">
+                <div style="font-size:30px; font-weight:800; color:var(--primary);" id="rank-val">#--</div>
+                <p id="rank-stat" style="font-size:13px; margin:5px 0 0 0;">टेस्ट देकर रैंक जानें!</p>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button class="btn" style="background:white; color:#333; border:1px solid #ddd;" onclick="startQuiz('Hindi')">हिंदी</button>
+                <button class="btn" style="background:white; color:#333; border:1px solid #ddd;" onclick="startQuiz('English')">English</button>
+                <button class="btn" style="background:white; color:#333; border:1px solid #ddd;" onclick="startQuiz('Science')">विज्ञान</button>
+                <button class="btn" style="background:white; color:#333; border:1px solid #ddd;" onclick="startQuiz('Math')">गणित</button>
+                <button class="btn" style="background:white; color:#333; border:1px solid #ddd;" onclick="startQuiz('SST')">S. Science</button>
+                <button class="btn" style="background:white; color:#333; border:1px solid #ddd;" onclick="startQuiz('Sanskrit')">संस्कृत</button>
+            </div>
+        </div>
+
+        <div id="quiz-sec" class="hidden">
+            <h2 id="q-text" style="text-align:left;">...</h2>
+            <div id="options-box"></div>
+            <button class="btn" style="background:#EA4335; margin-top:20px;" onclick="finishQuiz()">Submit</button>
+        </div>
+
+        <div id="result-sec" class="hidden">
+            <div id="res-card" style="padding:20px; border:2px dashed var(--primary); border-radius:20px;">
+                <h2 id="res-score" style="font-size:40px;">0/15</h2>
+                <p id="res-rank-final" style="font-weight:bold; color:var(--primary);"></p>
+            </div>
+            <button class="btn" style="background:#34A853; margin-top:20px;" onclick="download()">डाउनलोड करें</button>
+            <button class="btn" style="background:#eee; color:#333;" onclick="location.reload()">होम</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDocs, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyC1JPSXHgITHS0NI2HO-gPgHzfsfO8wLxk",
+        authDomain: "th-quiz-app-pro-90dfe.firebaseapp.com",
+        projectId: "th-quiz-app-pro-90dfe",
+        storageBucket: "th-quiz-app-pro-90dfe.firebasestorage.app",
+        messagingSenderId: "1033911634573",
+        appId: "1:1033911634573:web:81fafa7d7158d4d974f0c4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    let userObj = null, questions = [], qIdx = 0, score = 0, attempted = 0;
+
+    // --- डाउनलोड/इंस्टॉल फीचर (PWA) ---
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-banner').style.display = 'block'; // बैनर दिखाएँ
+    });
+
+    document.getElementById('install-btn').addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                document.getElementById('install-banner').style.display = 'none'; // इंस्टॉल होने पर छिपाएँ
+            }
+            deferredPrompt = null;
+        }
+    });
+
+    // अगर पहले से इंस्टॉल है, तो बैनर न दिखाएँ
+    window.addEventListener('appinstalled', () => {
+        document.getElementById('install-banner').style.display = 'none';
+    });
+
+    // --- बाकी ऐप फंक्शन्स ---
+    setPersistence(auth, browserLocalPersistence);
+
+    onAuthStateChanged(auth, async (user) => {
+        document.getElementById('loader').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('hidden');
+        if (user) {
+            userObj = user;
+            document.getElementById('login-sec').classList.add('hidden');
+            document.getElementById('dash-sec').classList.remove('hidden');
+            document.getElementById('u-name-head').innerText = "नमस्ते, " + user.displayName;
+            updateLeaderboard();
+        } else {
+            document.getElementById('login-sec').classList.remove('hidden');
+        }
+    });
+
+    document.getElementById('google-login-btn').onclick = () => signInWithPopup(auth, provider);
+
+    async function updateLeaderboard() {
+        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"));
+        const snap = await getDocs(q);
+        let rank = 0, total = snap.size;
+        snap.forEach((doc, i) => { if(doc.id === userObj.uid) rank = i + 1; });
+        if(rank > 0) {
+            document.getElementById('rank-val').innerText = `#${rank}`;
+            document.getElementById('rank-stat').innerText = `आप ${total - rank} छात्रों से आगे हैं।`;
+        }
+    }
+
+    window.startQuiz = (sub) => {
+        document.getElementById('dash-sec').classList.add('hidden');
+        document.getElementById('quiz-sec').classList.remove('hidden');
+        qIdx = 0; score = 0; attempted = 0;
+        questions = Array.from({length: 15}, (_, i) => ({
+            q: `${sub} प्रश्न ${i+1}`,
+            opts: ["सही विकल्प", "गलत A", "गलत B", "गलत C"].sort(() => Math.random() - 0.5),
+            ans: "सही विकल्प"
+        }));
+        showQ();
+    };
+
+    function showQ() {
+        if (qIdx >= 15) { finishQuiz(); return; }
+        const d = questions[qIdx];
+        document.getElementById('q-text').innerText = d.q;
+        const box = document.getElementById('options-box');
+        box.innerHTML = "";
+        d.opts.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = "btn option-btn"; b.innerText = opt;
+            b.onclick = () => {
+                attempted++;
+                if(opt === d.ans) { b.classList.add('correct'); score++; }
+                else { b.classList.add('wrong'); }
+                setTimeout(() => { qIdx++; showQ(); }, 500);
+            };
+            box.appendChild(b);
+        });
+    }
+
+    window.finishQuiz = async () => {
+        document.getElementById('quiz-sec').classList.add('hidden');
+        document.getElementById('result-sec').classList.remove('hidden');
+        document.getElementById('res-score').innerText = `${score}/${attempted}`;
+        const uRef = doc(db, "leaderboard", userObj.uid);
+        await setDoc(uRef, { name: userObj.displayName, score: score, date: new Date() });
+        updateLeaderboard().then(() => {
+            document.getElementById('res-rank-final').innerText = `रैंक: ${document.getElementById('rank-val').innerText}`;
+        });
+    }
+
+    window.download = () => {
+        html2canvas(document.getElementById("res-card")).then(c => {
+            const l = document.createElement("a");
+            l.download = `Result.png`;
+            l.href = c.toDataURL(); l.click();
+        });
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+import random
+import time
+import os
+from colorama import Fore, Back, Style, init
+
+# कलर्स एक्टिवेट करना
+init(autoreset=True)
+
+class UltimateQuizApp:
+    def __init__(self):
+        # 6 विषय जो आपने बताए
+        self.subjects = ["हिंदी", "अंग्रेजी", "सामाजिक विज्ञान", "विज्ञान", "गणित", "संस्कृत"]
+        
+        # यहाँ आप अपने 500 प्रश्न भर सकते हैं
+        # डेमो के लिए हर सब्जेक्ट में 20+ प्रश्न रखे गए हैं
+        self.db = {sub: self.load_questions(sub) for sub in self.subjects}
+        
+        self.score = 0
+        self.correct = 0
+        self.wrong = 0
+        self.skipped = 0
+        self.total_attempted = 0
+
+    def load_questions(self, subject):
+        # प्रश्न बैंक का ढांचा (इसे आप 500 तक बढ़ा सकते हैं)
+        q_list = []
+        for i in range(1, 51): # डेमो के लिए 50 प्रश्न प्रति विषय
+            q_list.append({
+                "question": f"{subject} का महत्वपूर्ण प्रश्न संख्या {i}?",
+                "options": [f"सही जवाब {i}", f"गलत विकल्प A", f"गलत विकल्प B", f"गलत विकल्प C"],
+                "answer": f"सही जवाब {i}"
+            })
+        return q_list
+
+    def clear(self):
+        os.system('clear')
+
+    def header(self):
+        print(Fore.YELLOW + Style.BRIGHT + "="*45)
+        print(Fore.CYAN + Style.BRIGHT + "       SMART STUDENT QUIZ PRO 2026       ")
+        print(Fore.YELLOW + Style.BRIGHT + "="*45)
+
+    def main_menu(self):
+        self.clear()
+        self.header()
+        print(Fore.WHITE + "\nअपना विषय चुनें:")
+        for idx, sub in enumerate(self.subjects, 1):
+            print(f"{Fore.GREEN}{idx}. {sub}")
+        
+        try:
+            choice = int(input(Fore.YELLOW + "\nनंबर चुनें (1-6): ")) - 1
+            if 0 <= choice < 6:
+                self.start_quiz(self.subjects[choice])
+            else:
+                print("गलत चुनाव!")
+                time.sleep(1)
+                self.main_menu()
+        except ValueError:
+            self.main_menu()
+
+    def start_quiz(self, subject):
+        # 500 में से 15 प्रश्न रैंडमली चुनना
+        selected_qs = random.sample(self.db[subject], 15)
+        
+        for i, q_data in enumerate(selected_qs, 1):
+            self.clear()
+            print(Fore.MAGENTA + f"विषय: {subject} | प्रश्न: {i}/15")
+            print(Fore.BLUE + "-"*45)
+            print(Fore.WHITE + Style.BRIGHT + f"Q{i}: {q_data['question']}")
+            
+            # ऑप्शंस की शफलिंग (हर बार अलग क्रम)
+            options = list(q_data['options'])
+            random.shuffle(options)
+            
+            for idx, opt in enumerate(options, 1):
+                print(f"{Fore.CYAN}{idx}. {opt}")
+            
+            print(Fore.BLACK + Back.WHITE + "\n[S] SKIP | [Q] SUBMIT & QUIT")
+            user_input = input(Fore.YELLOW + "\nआपका उत्तर: ").upper()
+
+            if user_input == 'Q':
+                break
+            if user_input == 'S':
+                self.skipped += 1
+                continue
+
+            try:
+                selected_opt = options[int(user_input)-1]
+                self.total_attempted += 1
+                
+                # विजुअल फीडबैक: सही (हरा) और गलत (लाल)
+                if selected_opt == q_data['answer']:
+                    print(Back.GREEN + Fore.BLACK + "\n  सही जवाब! ✅  ")
+                    self.correct += 1
+                    self.score += 4
+                    time.sleep(0.5) # 0.5 सेकंड में अगला प्रश्न
+                else:
+                    print(Back.RED + Fore.WHITE + f"\n  गलत! सही उत्तर: {q_data['answer']} ❌  ")
+                    self.wrong += 1
+                    time.sleep(1.5)
+            except:
+                print(Fore.RED + "गलत इनपुट! प्रश्न स्किप हो गया।")
+                time.sleep(1)
+
+        self.final_report()
+
+    def final_report(self):
+        self.clear()
+        self.header()
+        total = self.total_attempted if self.total_attempted > 0 else 1
+        accuracy = (self.correct / total) * 100 # एक्यूरेसी लॉजिक
+        
+        print(Fore.WHITE + "\n--- आपकी रिपोर्ट कार्ड ---")
+        print(f"कुल प्रश्न हल किए: {self.total_attempted}")
+        print(f"सही: {Fore.GREEN}{self.correct}")
+        print(f"गलत: {Fore.RED}{self.wrong}")
+        print(f"स्किप किए: {Fore.YELLOW}{self.skipped}")
+        print(f"एक्यूरेसी: {Fore.CYAN}{accuracy:.2f}%") #
+
+        # रैंक सिस्टम
+        if accuracy >= 90: rank = "TOPPER (Rank 1) 🥇"
+        elif accuracy >= 75: rank = "EXPERT (Rank 2) 🥈"
+        elif accuracy >= 50: rank = "AVERAGE (Rank 3) 🥉"
+        else: rank = "BEGINNER (Needs Practice)"
+        
+        print(Style.BRIGHT + Fore.MAGENTA + f"\nआपकी रैंक: {rank}")
+        print(Fore.YELLOW + "="*45)
+        input("\nमुख्य मेनू पर जाने के लिए Enter दबाएं...")
+        self.main_menu()
+
+if __name__ == "__main__":
+    app = UltimateQuizApp()
+    app.main_menu()

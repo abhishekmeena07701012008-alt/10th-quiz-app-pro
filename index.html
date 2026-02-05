@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz App Pro</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --p: #6200ee; --s: #4caf50; --e: #f44336; --bg: #f8f9fc; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .app-card { background: white; width: 100%; max-width: 450px; padding: 20px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; position: relative; }
+        
+        /* डाउनलोड बटन का डिजाइन */
+        #download-banner { 
+            background: #ffeb3b; width: 100%; max-width: 450px; padding: 12px; 
+            border-radius: 12px; margin-bottom: 15px; display: flex; 
+            justify-content: space-between; align-items: center; font-weight: bold; font-size: 14px;
+        }
+        .dl-btn { background: #000; color: #fff; padding: 8px 15px; border-radius: 8px; text-decoration: none; }
+        
+        .btn { width: 100%; padding: 14px; margin: 8px 0; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 15px; }
+        .option-btn { background: #f1f3f8; text-align: left; padding-left: 15px; border: 2px solid transparent; }
+        .correct { background: #e8f5e9 !important; border-color: var(--s); color: #2e7d32; }
+        .wrong { background: #ffebee !important; border-color: var(--e); color: #c62828; }
+        .hidden { display: none !important; }
+        #review-list { max-height: 250px; overflow-y: auto; text-align: left; margin-top: 15px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <div id="download-banner" class="hidden">
+        <span>📲 बेहतर अनुभव के लिए ऐप डाउनलोड करें!</span>
+        <a href="आपकी_ऐप_का_लिंक_यहाँ_डालें.apk" class="dl-btn" onclick="markAsDownloaded()">Download</a>
+    </div>
+
+    <div class="app-card">
+        <div id="login-screen">
+            <h2 style="color:var(--p);">10th Quiz Pro 🚀</h2>
+            <button id="googleBtn" class="btn" style="background:white; border:1px solid #ddd;">Google लॉगिन</button>
+            <p>या मोबाइल OTP</p>
+            <button class="btn" style="background:var(--p); color:white;">OTP भेजें</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <h3>विषय चुनें 📚</h3>
+            <button class="btn" style="background:#eee;" onclick="startQuiz('विज्ञान')">🔬 विज्ञान</button>
+            <button class="btn" style="background:#eee;" onclick="startQuiz('गणित')">📐 गणित</button>
+            <button class="btn" style="background:#eee;" onclick="startQuiz('हिंदी')">📙 हिंदी</button>
+            <button class="btn" style="background:#eee;" onclick="startQuiz('संस्कृत')">🕉️ संस्कृत</button>
+            <button class="btn" style="background:#eee;" onclick="startQuiz('English')">🇬🇧 English</button>
+            <button class="btn" style="background:#eee;" onclick="startQuiz('सामाजिक विज्ञान')">🌍 सामाजिक विज्ञान</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div id="timer" style="font-weight:bold; color:red; font-size:20px;">15:00</div>
+            <h4 id="q-text">सवाल...</h4>
+            <div id="options-box"></div>
+        </div>
+
+        <div id="result-screen" class="hidden">
+            <h2 style="color:var(--s);">रिजल्ट कार्ड 🏆</h2>
+            <div id="report-details" style="text-align:left; background:#f9f9f9; padding:15px; border-radius:15px;">
+                <p>✅ सही: <span id="r-correct">0</span> | ❌ गलत: <span id="r-wrong">0</span></p>
+                <p>📊 स्कोर: <span id="r-score">0</span>/100 | <span id="r-rank" style="color:orange;">रैंक: ..</span></p>
+            </div>
+            <div id="review-list"></div>
+            <button class="btn" style="background:var(--p); color:white; margin-top:15px;" onclick="location.reload()">दोबारा खेलें</button>
+        </div>
+    </div>
+
+<script>
+    // Firebase चाबी (पहले से सेट)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJFK5xs9_gLI1Z-pKM",
+      authDomain: "th-quiz-app-pro-59ed3.firebaseapp.com",
+      projectId: "th-quiz-app-pro-59ed3",
+      storageBucket: "th-quiz-app-pro-59ed3.appspot.com",
+      messagingSenderId: "914051046097",
+      appId: "1:914051046097:web:0d7986"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    // --- स्मार्ट डाउनलोड लॉजिक ---
+    window.onload = function() {
+        if (!localStorage.getItem('appDownloaded')) {
+            document.getElementById('download-banner').classList.remove('hidden');
+        }
+    };
+
+    function markAsDownloaded() {
+        localStorage.setItem('appDownloaded', 'true');
+        document.getElementById('download-banner').classList.add('hidden');
+    }
+
+    // --- क्विज़ लॉजिक (पुराना वाला) ---
+    document.getElementById('googleBtn').onclick = () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider).then(() => {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+        });
+    };
+
+    // (बाकी का startQuiz, checkAns, और finish फंक्शन यहाँ रहेगा...)
+</script>
+</body>
+</html>

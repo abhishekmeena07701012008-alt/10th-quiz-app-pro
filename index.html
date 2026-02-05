@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Hub Exam Centre</title>
+    <style>
+        :root { --blue: #1a237e; --success: #28a745; --danger: #dc3545; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; }
+        
+        /* Login Screen */
+        #login-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--blue); color: white; }
+        .btn { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-green { background: var(--success); color: white; }
+
+        /* Dashboard & Quiz */
+        header { background: white; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; }
+        .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+        .option { display: block; padding: 12px; border: 2px solid #eee; margin: 10px 0; border-radius: 10px; cursor: pointer; }
+        .option:hover { background: #f8f9fa; }
+        
+        /* Analysis (Video Style) */
+        .result-screen { display: none; padding: 20px; text-align: center; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .stat-card { background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1px solid #ddd; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <h1>IT Hub Quiz App</h1>
+        <input type="text" id="user-name" placeholder="अपना नाम लिखें" style="padding:10px; border-radius:5px; border:none; width:200px; margin-bottom:15px;">
+        <button class="btn btn-green" onclick="saveUser()">प्रवेश करें</button>
+    </div>
+
+    <div id="main-app" class="hidden">
+        <header>
+            <span id="display-name" style="font-weight:bold; color:var(--blue);"></span>
+            <span id="timer">समय: 10:00</span>
+        </header>
+
+        <div id="subject-selection" class="container">
+            <h3>अपना विषय चुनें:</h3>
+            <button class="btn" style="width:100%; margin:5px; background:#ddd;" onclick="startQuiz('hindi')">1. हिंदी</button>
+            <button class="btn" style="width:100%; margin:5px; background:#ddd;" onclick="startQuiz('english')">2. अंग्रेजी</button>
+            <button class="btn" style="width:100%; margin:5px; background:#ddd;" onclick="startQuiz('social')">3. सो. विज्ञान</button>
+            <button class="btn" style="width:100%; margin:5px; background:#ddd;" onclick="startQuiz('science')">4. विज्ञान</button>
+            <button class="btn" style="width:100%; margin:5px; background:#ddd;" onclick="startQuiz('math')">5. गणित</button>
+            <button class="btn" style="width:100%; margin:5px; background:#ddd;" onclick="startQuiz('sanskrit')">6. संस्कृत</button>
+        </div>
+
+        <div id="quiz-area" class="container hidden">
+            <h4 id="q-text">प्रश्न यहाँ आएगा</h4>
+            <div id="options-container"></div>
+            <br>
+            <button class="btn btn-green" onclick="submitAnswer()">Next Question</button>
+        </div>
+
+        <div id="result-area" class="container result-screen">
+            <h2 style="color:var(--blue)">एनालिसिस रिपोर्ट</h2>
+            <div class="stat-grid">
+                <div class="stat-card"><h4>रैंक</h4><h2 id="res-rank" style="color:#d4af37">#--</h2></div>
+                <div class="stat-card"><h4>एक्यूरेसी</h4><h2 id="res-acc">0%</h2></div>
+                <div class="stat-card"><h4>सही</h4><h2 id="res-score">0</h2></div>
+                <div class="stat-card"><h4>विषय</h4><h2 id="res-sub" style="font-size:16px">--</h2></div>
+            </div>
+            <button class="btn btn-green" style="margin-top:20px; width:100%;" onclick="location.reload()">दोबारा प्रयास करें</button>
+        </div>
+    </div>
+
+<script>
+    const questionsDB = {
+        hindi: [{q: "समास के कितने भेद हैं?", opts: ["4","5","6","8"], ans: "6"}],
+        math: [{q: "वृत्त के क्षेत्रफल का सूत्र?", opts: ["2πr","πr²","πd","2r"], ans: "πr²"}],
+        science: [{q: "जल का सूत्र क्या है?", opts: ["H2O", "CO2", "O2", "N2"], ans: "H2O"}],
+        english: [{q: "Opposite of 'Hot'?", opts: ["Cold", "Warm", "Sun", "Fire"], ans: "Cold"}],
+        social: [{q: "भारत कब आजाद हुआ?", opts: ["1947", "1950", "1942", "1930"], ans: "1947"}],
+        sanskrit: [{q: "पठति में कौन सा लकार है?", opts: ["लट", "लृट", "लंग", "लोट"], ans: "लट"}]
+    };
+
+    let currentSub = "";
+    let qIdx = 0;
+    let score = 0;
+
+    window.onload = () => {
+        const name = localStorage.getItem('student_name');
+        if(name) showDashboard(name);
+    }
+
+    function saveUser() {
+        const name = document.getElementById('user-name').value;
+        if(name) {
+            localStorage.setItem('student_name', name);
+            showDashboard(name);
+        }
+    }
+
+    function showDashboard(name) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('main-app').classList.remove('hidden');
+        document.getElementById('display-name').innerText = "छात्र: " + name;
+    }
+
+    function startQuiz(sub) {
+        currentSub = sub;
+        document.getElementById('subject-selection').classList.add('hidden');
+        document.getElementById('quiz-area').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        const q = questionsDB[currentSub][0]; // यहाँ 0 की जगह qIdx का उपयोग करें जब अधिक सवाल हों
+        document.getElementById('q-text').innerText = q.q;
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        q.opts.forEach(opt => {
+            container.innerHTML += `<label class="option"><input type="radio" name="answer" value="${opt}"> ${opt}</label>`;
+        });
+    }
+
+    function submitAnswer() {
+        const selected = document.querySelector('input[name="answer"]:checked');
+        if(!selected) return alert("उत्तर चुनें");
+        
+        if(selected.value === questionsDB[currentSub][0].ans) score++;
+        showResult();
+    }
+
+    function showResult() {
+        document.getElementById('quiz-area').classList.add('hidden');
+        document.getElementById('result-area').style.display = 'block';
+        
+        document.getElementById('res-score').innerText = score;
+        document.getElementById('res-sub').innerText = currentSub.toUpperCase();
+        
+        let acc = (score / 1) * 100; // अभी 1 सवाल के आधार पर, बाद में कुल सवालों से भाग दें
+        document.getElementById('res-acc').innerText = acc + "%";
+        document.getElementById('res-rank').innerText = acc === 100 ? "#1" : "#150";
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Class Quiz App - IT Hub</title>
+    <style>
+        :root { --primary: #2c3e50; --success: #28a745; --danger: #dc3545; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; display: flex; justify-content: center; padding: 20px; }
+        .quiz-card { background: white; width: 100%; max-width: 500px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); font-size: 24px; text-align: center; }
+        .option-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; background: white; cursor: pointer; transition: 0.3s; text-align: left; font-size: 16px; }
+        .option-btn:hover { background: #f8f9fa; }
+        .correct { background: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background: var(--danger) !important; color: white; border-color: var(--danger); }
+        .hidden { display: none; }
+        #report-card { text-align: center; }
+        .stat { font-size: 18px; margin: 10px 0; color: #555; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-card">
+    <div id="setup-screen">
+        <h1>IT Hub Quiz App</h1>
+        <input type="text" id="student-name" placeholder="अपना नाम लिखें" style="width:90%; padding:10px; margin-bottom:15px;">
+        <p>विषय चुनें:</p>
+        <select id="subject-select" style="width:95%; padding:10px; margin-bottom:20px;">
+            <option value="hindi">हिंदी</option>
+            <option value="math">गणित</option>
+            <option value="science">विज्ञान</option>
+        </select>
+        <button onclick="startQuiz()" style="width:100%; padding:12px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">क्विज़ शुरू करें</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div style="display:flex; justify-content:space-between; color:#888;">
+            <span id="q-count">प्रश्न: 1/15</span>
+            <span id="timer">समय: 0.5s</span>
+        </div>
+        <h2 id="question-text" style="margin:20px 0;"></h2>
+        <div id="options-container"></div>
+    </div>
+
+    <div id="report-card" class="hidden">
+        <h1>रिजल्ट रिपोर्ट</h1>
+        <hr>
+        <p class="stat">नाम: <span id="res-name"></span></p>
+        <p class="stat">कुल प्रश्न: 15</p>
+        <p class="stat">सही उत्तर: <span id="res-score"></span></p>
+        <p class="stat">एक्यूरेसी: <span id="res-acc"></span>%</p>
+        <p class="stat" style="font-weight:bold; color:var(--primary);">रैंक: <span id="res-rank"></span></p>
+        <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px;">पुनः प्रयास करें</button>
+    </div>
+</div>
+
+<script>
+    const questionsDB = {
+        hindi: [
+            {q: "कबीर दास की भाषा कौन सी थी?", options: ["सधुक्कड़ी", "ब्रज", "अवधी", "खड़ी बोली"], ans: "सधुक्कड़ी"},
+            {q: "समास के कितने भेद होते हैं?", options: ["6", "4", "5", "8"], ans: "6"}
+            // यहाँ 500 सवाल जोड़ सकते हैं
+        ],
+        math: [
+            {q: "2 + 2 कितना होता है?", options: ["4", "3", "5", "6"], ans: "4"}
+        ]
+    };
+
+    let currentQuestions = [];
+    let qIndex = 0;
+    let score = 0;
+
+    function startQuiz() {
+        const name = document.getElementById('student-name').value;
+        if(!name) { alert("कृपया नाम लिखें"); return; }
+        
+        const sub = document.getElementById('subject-select').value;
+        currentQuestions = [...questionsDB[sub]].sort(() => 0.5 - Math.random()).slice(0, 15);
+        
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const q = currentQuestions[qIndex];
+        document.getElementById('q-count').innerText = `प्रश्न: ${qIndex + 1}/15`;
+        document.getElementById('question-text').innerText = q.q;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        const shuffledOpts = [...q.options].sort(() => 0.5 - Math.random());
+        shuffledOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q.ans);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.disabled = true);
+
+        if(selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            btns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+        }
+
+        setTimeout(() => {
+            qIndex++;
+            if(qIndex < currentQuestions.length) showQuestion();
+            else showReport();
+        }, 500); // 0.5 सेकंड का गैप (आपके नोट्स के अनुसार)
+    }
+
+    function showReport() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('report-card').classList.remove('hidden');
+        
+        const acc = ((score/currentQuestions.length)*100).toFixed(2);
+        document.getElementById('res-name').innerText = document.getElementById('student-name').value;
+        document.getElementById('res-score').innerText = score;
+        document.getElementById('res-acc').innerText = acc;
+        
+        let rank = acc >= 90 ? "1st (Topper)" : (acc >= 60 ? "Average" : "Need Study");
+        document.getElementById('res-rank').innerText = rank;
+    }
+</script>
+</body>
+</html>

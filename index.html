@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz App Pro</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --p: #6200ee; --s: #4caf50; --e: #f44336; --bg: #f8f9fc; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; width: 100%; max-width: 450px; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .btn { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .sub-btn { background: #f0f2f5; border: 1px solid #ddd; text-align: left; padding-left: 20px; }
+        .option-btn { background: #f1f3f8; text-align: left; padding-left: 20px; border: 2px solid transparent; }
+        .correct { background: #e8f5e9 !important; border-color: var(--s); color: #2e7d32; }
+        .wrong { background: #ffebee !important; border-color: var(--e); color: #c62828; }
+        .hidden { display: none !important; }
+        #timer { font-size: 26px; color: var(--e); font-weight: bold; margin-bottom: 15px; }
+        #dl-banner { background: #ffeb3b; width: 100%; max-width: 450px; padding: 12px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .review-box { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 15px; margin-top: 15px; max-height: 250px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+
+    <div id="dl-banner" class="hidden">
+        <span>📲 ऐप डाउनलोड करें!</span>
+        <a href="quiz.apk" style="background:black; color:white; padding:8px 15px; border-radius:8px; text-decoration:none;" onclick="markDl()">Download</a>
+    </div>
+
+    <div class="card">
+        <div id="login-screen">
+            <h2 style="color:var(--p);">10th Quiz Pro 🚀</h2>
+            <button id="googleBtn" class="btn" style="background:white; border:1px solid #ddd;">Google से लॉगिन</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <h3>विषय चुनें 📚</h3>
+            <button class="btn sub-btn" onclick="setupQuiz('Science')">🔬 विज्ञान</button>
+            <button class="btn sub-btn" onclick="setupQuiz('Math')">📐 गणित</button>
+            <button class="btn sub-btn" onclick="setupQuiz('Hindi')">📙 हिंदी</button>
+            <button class="btn sub-btn" onclick="setupQuiz('Sanskrit')">🕉️ संस्कृत</button>
+            <button class="btn sub-btn" onclick="setupQuiz('English')">🇬🇧 English</button>
+            <button class="btn sub-btn" onclick="setupQuiz('SST')">🌍 सामाजिक विज्ञान</button>
+        </div>
+
+        <div id="quiz-screen" class="hidden">
+            <div id="timer">15:00</div>
+            <h4 id="q-text" style="min-height:60px;">सवाल लोड हो रहा है...</h4>
+            <div id="options-box"></div>
+        </div>
+
+        <div id="result-screen" class="hidden">
+            <h2 style="color:var(--s);">रिजल्ट कार्ड 🏆</h2>
+            <div style="background:#f0f0f0; padding:15px; border-radius:15px; text-align:left;">
+                <p>✅ सही: <span id="res-c">0</span> | ❌ गलत: <span id="res-w">0</span></p>
+                <p>📊 स्कोर: <span id="res-s">0</span>/100</p>
+                <p id="res-rank" style="color:orange; font-weight:bold;">रैंक: लोड हो रही है...</p>
+            </div>
+            <div class="review-box" id="review-list"></div>
+            <button class="btn" style="background:var(--p); color:white; margin-top:15px;" onclick="location.reload()">दोबारा खेलें</button>
+        </div>
+    </div>
+
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJFK5xs9_gLI1Z-pKM",
+      authDomain: "th-quiz-app-pro-59ed3.firebaseapp.com",
+      projectId: "th-quiz-app-pro-59ed3",
+      storageBucket: "th-quiz-app-pro-59ed3.appspot.com",
+      messagingSenderId: "914051046097",
+      appId: "1:914051046097:web:0d7986"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    let allQuestions = {}, currentSet = [], qIdx = 0, correct = 0, reviewData = [];
+
+    // स्मार्ट डाउनलोड
+    if(!localStorage.getItem('appDl')) document.getElementById('dl-banner').classList.remove('hidden');
+    function markDl() { localStorage.setItem('appDl', 'true'); }
+
+    // लॉगिन लॉजिक
+    document.getElementById('googleBtn').onclick = () => {
+        auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider());
+    };
+
+    auth.getRedirectResult().then(res => {
+        if(res.user || auth.currentUser) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadQuestions();
+        }
+    });
+
+    function loadQuestions() {
+        fetch('questions.json').then(r => r.json()).then(data => { allQuestions = data; });
+    }
+
+    function setupQuiz(subject) {
+        document.getElementById('dashboard').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        // 600 में से 15 रैंडम सवाल उठाना
+        let pool = allQuestions[subject] || [];
+        currentSet = pool.sort(() => 0.5 - Math.random()).slice(0, 15);
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if(qIdx >= 15) return showFinal();
+        const data = currentSet[qIdx];
+        document.getElementById('q-text').innerText = `Q${qIdx+1}: ${data.q}`;
+        const box = document.getElementById('options-box');
+        box.innerHTML = "";
+        // उत्तरों को शफल करना
+        let opts = [...data.options].sort(() => 0.5 - Math.random());
+        opts.forEach(o => {
+            const b = document.createElement('button');
+            b.className = "btn option-btn";
+            b.innerText = o;
+            b.onclick = () => check(b, o, data.ans);
+            box.appendChild(b);
+        });
+    }
+
+    function check(btn, selected, actual) {
+        const isRight = (selected === actual);
+        reviewData.push({q: currentSet[qIdx].q, sel: selected, ans: actual, ok: isRight});
+        if(isRight) { btn.classList.add('correct'); correct++; }
+        else { btn.classList.add('wrong'); }
+        qIdx++;
+        setTimeout(showQuestion, 500); // 0.5s ऑटो-नेक्स्ट
+    }
+
+    function showFinal() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        const score = Math.round((correct / 15) * 100);
+        document.getElementById('res-c').innerText = correct;
+        document.getElementById('res-w').innerText = 15 - correct;
+        document.getElementById('res-s').innerText = score;
+        
+        // समीक्षा लिस्ट
+        const rList = document.getElementById('review-list');
+        reviewData.forEach((item, i) => {
+            rList.innerHTML += `<p><b>${i+1}. ${item.q}</b><br><span style="color:${item.ok?'green':'red'}">आपका: ${item.sel}</span><br>सही: ${item.ans}</p>`;
+        });
+
+        saveScore(score);
+    }
+
+    function saveScore(s) {
+        const user = auth.currentUser;
+        db.collection("leaderboard").doc(user.uid).set({
+            name: user.displayName, score: s, date: new Date()
+        }).then(() => {
+            db.collection("leaderboard").where("score", ">", s).get().then(snap => {
+                document.getElementById('res-rank').innerText = `आपकी रैंक: ${snap.size + 1}`;
+            });
+        });
+    }
+</script>
+</body>
+</html>

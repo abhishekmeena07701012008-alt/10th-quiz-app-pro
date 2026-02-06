@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Abhishek Meena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 15px;
+            color: #1e293b;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease-out;
+            text-align: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { color: var(--primary); font-weight: 700; margin-bottom: 5px; }
+        .subtitle { font-size: 14px; color: #64748b; margin-bottom: 25px; }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+
+        .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        .btn {
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+        }
+
+        .btn-subject { background: white; border: 2px solid #f1f5f9; color: #475569; }
+        .btn-subject:hover { background: var(--primary); color: white; transform: translateY(-3px); }
+
+        .btn-action { background: var(--primary); color: white; width: 100%; margin-top: 15px; }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: #fff;
+            border: 2px solid #f1f5f9;
+            border-radius: 12px;
+            text-align: left;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover { border-color: var(--primary); background: #f8fafc; }
+
+        /* रंगों के इफ़ेक्ट्स */
+        .correct { background: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background: var(--danger) !important; color: white; border-color: var(--danger); }
+
+        .timer-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .timer-progress {
+            height: 100%;
+            background: var(--danger);
+            width: 100%;
+            transition: linear 1s;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-val { font-size: 20px; font-weight: 700; display: block; }
+        .stat-label { font-size: 12px; color: #64748b; }
+
+        #quiz-page, #report-page { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="login-page">
+    <h1>10th Quiz Pro</h1>
+    <p class="subtitle">By Abhishek Meena</p>
+    <input type="text" id="user-name" placeholder="अपना शुभ नाम दर्ज करें...">
+    <div class="subject-grid">
+        <button class="btn btn-subject" onclick="startQuiz('Hindi')">📕 हिंदी</button>
+        <button class="btn btn-subject" onclick="startQuiz('English')">📘 English</button>
+        <button class="btn btn-subject" onclick="startQuiz('S.Science')">🌍 सो. विज्ञान</button>
+        <button class="btn btn-subject" onclick="startQuiz('Science')">🔬 विज्ञान</button>
+        <button class="btn btn-subject" onclick="startQuiz('Math')">📐 गणित</button>
+        <button class="btn btn-subject" onclick="startQuiz('Sanskrit')">📙 संस्कृत</button>
+    </div>
+    <button class="btn btn-action" style="background:#22c55e" onclick="downloadAPK()">📲 ऐप डाउनलोड करें</button>
+</div>
+
+<div class="container" id="quiz-page">
+    <div style="display: flex; justify-content: space-between; font-weight: 600;">
+        <span id="display-name" style="color: var(--primary);"></span>
+        <span id="time-text" style="color: var(--danger);">15:00</span>
+    </div>
+    <div class="timer-bar"><div class="timer-progress" id="timer-line"></div></div>
+    
+    <h3 id="question-text" style="margin-bottom: 25px; line-height: 1.5;"></h3>
+    <div id="options-container"></div>
+    
+    <div style="display: flex; gap: 10px; margin-top: 25px;">
+        <button class="btn" style="flex:1; background:#cbd5e1" onclick="skipQuestion()">स्किप</button>
+        <button class="btn" style="flex:1; background:#f43f5e; color:white;" onclick="confirmSubmit()">सबमिट</button>
+    </div>
+</div>
+
+<div class="container" id="report-page">
+    <div id="rank-icon" style="font-size: 60px; margin-bottom: 10px;">🏆</div>
+    <h2 id="res-feedback">शानदार प्रदर्शन!</h2>
+    <p id="student-name-display" style="font-weight: 600;"></p>
+    
+    <div class="stats-grid">
+        <div class="stat-card"><span class="stat-val" id="res-correct" style="color:var(--success)">0</span><span class="stat-label">सही</span></div>
+        <div class="stat-card"><span class="stat-val" id="res-wrong" style="color:var(--danger)">0</span><span class="stat-label">गलत</span></div>
+        <div class="stat-card"><span class="stat-val" id="res-skipped">0</span><span class="stat-label">छोड़े गए</span></div>
+        <div class="stat-card"><span class="stat-val" id="res-acc" style="color:var(--primary)">0%</span><span class="stat-label">सटीकता</span></div>
+    </div>
+
+    <button class="btn btn-action" onclick="location.reload()">दोबारा प्रयास करें</button>
+</div>
+
+<script src="questions.js"></script>
+<script>
+    let currentQuestions = [], currentIndex = 0, score = 0, wrong = 0, skipped = 0;
+    let timer, timeLeft = 15 * 60, totalTime = 15 * 60;
+    let userName = "";
+
+    function startQuiz(subject) {
+        userName = document.getElementById("user-name").value.trim();
+        if (!userName) { alert("कृपया अपना नाम लिखें!"); return; }
+
+        document.getElementById("login-page").style.display = "none";
+        document.getElementById("quiz-page").style.display = "block";
+        document.getElementById("display-name").innerText = userName;
+
+        let allQ = [...quizData[subject]];
+        currentQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, 15);
+        
+        startTimer();
+        loadQuestion();
+    }
+
+    function startTimer() {
+        timer = setInterval(() => {
+            let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+            document.getElementById("time-text").innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+            
+            // प्रोग्रेस बार अपडेट
+            let width = (timeLeft / totalTime) * 100;
+            document.getElementById("timer-line").style.width = width + "%";
+
+            if (timeLeft-- <= 0) endQuiz();
+        }, 1000);
+    }
+
+    function loadQuestion() {
+        if (currentIndex >= currentQuestions.length) return endQuiz();
+        let q = currentQuestions[currentIndex];
+        document.getElementById("question-text").innerText = q.q;
+        let container = document.getElementById("options-container");
+        container.innerHTML = "";
+
+        q.options.sort(() => 0.5 - Math.random()).forEach(opt => {
+            let btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => {
+                const btns = container.querySelectorAll('button');
+                btns.forEach(b => b.disabled = true);
+                if (opt === q.a) { btn.classList.add("correct"); score++; }
+                else { btn.classList.add("wrong"); wrong++; }
+                setTimeout(() => { currentIndex++; loadQuestion(); }, 500);
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    function skipQuestion() { skipped++; currentIndex++; loadQuestion(); }
+
+    function confirmSubmit() { if (confirm("क्या आप टेस्ट खत्म करना चाहते हैं?")) { skipped += (15 - currentIndex); endQuiz(); } }
+
+    function endQuiz() {
+        clearInterval(timer);
+        document.getElementById("quiz-page").style.display = "none";
+        document.getElementById("report-page").style.display = "block";
+
+        document.getElementById("student-name-display").innerText = "छात्र: " + userName;
+        document.getElementById("res-correct").innerText = score;
+        document.getElementById("res-wrong").innerText = wrong;
+        document.getElementById("res-skipped").innerText = skipped;
+        
+        let acc = (score / 15) * 100;
+        document.getElementById("res-acc").innerText = acc.toFixed(0) + "%";
+
+        let feedback = "";
+        let icon = "🙁";
+        if(acc >= 85) { feedback = `अद्भुत ${userName}! आप टॉपर बनेंगे।`; icon = "🏆"; }
+        else if(acc >= 60) { feedback = `अच्छा है ${userName}, पर थोड़ी और मेहनत करें।`; icon = "⭐"; }
+        else { feedback = `${userName}, आपको पढ़ाई पर बहुत ध्यान देना होगा।`; icon = "📚"; }
+        
+        document.getElementById("res-feedback").innerText = feedback;
+        document.getElementById("rank-icon").innerText = icon;
+    }
+
+    function downloadAPK() { alert("APK लिंक यहाँ जोड़ें!"); }
+</script>
+</body>
+</html>

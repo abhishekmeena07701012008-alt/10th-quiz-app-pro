@@ -1,0 +1,52 @@
+<script>
+    let currentQuestions = [], currentIndex = 0, score = 0, wrong = 0, skipped = 0;
+    let timer, timeLeft = 15 * 60, totalTime = 15 * 60;
+    let userName = "";
+
+    // ऐप शुरू होते ही चेक करो कि क्या नाम पहले से सेव है
+    window.onload = function() {
+        const savedName = localStorage.getItem("quiz_user_name");
+        if (savedName) {
+            userName = savedName;
+            showSubjectSelection(); // अगर नाम है तो सीधे विषय चुनने वाला पेज दिखाओ
+        }
+    };
+
+    function startQuizWithNewName() {
+        const nameInput = document.getElementById("user-name").value.trim();
+        if (!nameInput) { 
+            alert("कृपया अपना नाम लिखें!"); 
+            return; 
+        }
+        // नाम को डेटाबेस (localStorage) में सेव करें
+        localStorage.setItem("quiz_user_name", nameInput);
+        userName = nameInput;
+        showSubjectSelection();
+    }
+
+    function showSubjectSelection() {
+        document.getElementById("login-page").style.display = "none";
+        document.getElementById("subject-selection-page").style.display = "block";
+        document.getElementById("welcome-msg").innerText = `नमस्ते, ${userName}! अपना विषय चुनें:`;
+    }
+
+    function startQuiz(subject) {
+        document.getElementById("subject-selection-page").style.display = "none";
+        document.getElementById("quiz-page").style.display = "block";
+        document.getElementById("display-name").innerText = "छात्र: " + userName;
+
+        let allQ = [...quizData[subject]];
+        currentQuestions = allQ.sort(() => 0.5 - Math.random()).slice(0, 15);
+        
+        startTimer();
+        loadQuestion();
+    }
+
+    // ... (बाकी के functions जैसे startTimer, loadQuestion, endQuiz वही रहेंगे जो पहले थे)
+
+    // अगर छात्र नाम बदलना चाहता है (Optional feature)
+    function resetName() {
+        localStorage.removeItem("quiz_user_name");
+        location.reload();
+    }
+</script>

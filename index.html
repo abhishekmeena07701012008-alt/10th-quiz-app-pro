@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Premium</title>
+    <style>
+        :root {
+            --bg: #0f172a; --card-bg: rgba(255, 255, 255, 0.1);
+            --primary: #38bdf8; --success: #22c55e; --danger: #ef4444; --text: #f8fafc;
+        }
+        body { 
+            font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text);
+            margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh;
+        }
+        .container { 
+            background: var(--card-bg); backdrop-filter: blur(10px);
+            width: 100%; max-width: 450px; padding: 25px; border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+        }
+        input {
+            width: 80%; padding: 12px; border-radius: 10px; border: 1px solid var(--primary);
+            background: rgba(255,255,255,0.1); color: white; margin-bottom: 15px; text-align: center;
+        }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .subject-btn { 
+            padding: 20px 10px; border: none; border-radius: 16px;
+            background: rgba(255,255,255,0.05); color: white; font-weight: bold; cursor: pointer; transition: 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .subject-btn:hover { background: var(--primary); transform: translateY(-3px); }
+        .option { 
+            background: rgba(255,255,255,0.05); padding: 15px; margin: 12px 0; border-radius: 12px; 
+            cursor: pointer; transition: 0.2s; border: 1px solid rgba(255,255,255,0.1); text-align: left;
+        }
+        .correct { background: var(--success) !important; }
+        .wrong { background: var(--danger) !important; }
+        .btn-ctrl { padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+    <div id="name-screen" style="display:none;">
+        <h1>नमस्ते!</h1>
+        <p>अपना नाम लिखें:</p>
+        <input type="text" id="user-name-input" placeholder="आपका नाम यहाँ लिखें...">
+        <button class="btn-ctrl" style="background:var(--primary); width:100%;" onclick="saveName()">शुरू करें</button>
+    </div>
+
+    <div id="home" style="display:none;">
+        <h1 id="welcome-text">🎓 10th Quiz Pro</h1>
+        <p>विषय चुनें और टेस्ट शुरू करें:</p>
+        <div class="grid">
+            <button class="subject-btn" onclick="start('hindi')">हिंदी</button>
+            <button class="subject-btn" onclick="start('science')">विज्ञान</button>
+            <button class="subject-btn" onclick="start('maths')">गणित</button>
+            <button class="subject-btn" onclick="start('english')">अंग्रेजी</button>
+            <button class="subject-btn" onclick="start('social_science')">सो. विज्ञान</button>
+            <button class="subject-btn" onclick="start('sanskrit')">संस्कृत</button>
+        </div>
+        <div id="download-box" style="margin-top:25px;">
+            <a id="download-link" href="10thQuizPro.apk" download style="text-decoration:none;">
+                <button class="btn-ctrl" style="background:#f59e0b; width:100%">📥 Download APK</button>
+            </a>
+        </div>
+    </div>
+
+    <div id="quiz" style="display:none;">
+        <h2 id="question">प्रश्न यहाँ आएगा...</h2>
+        <div id="options"></div>
+    </div>
+
+    <div id="result" style="display:none;">
+        <h2 id="result-user">अभिषेक, आपका परिणाम</h2>
+        <div id="report" style="font-size: 18px; line-height: 2;"></div>
+        <button class="btn-ctrl" style="background:var(--primary); width:100%; margin-top:20px;" onclick="location.reload()">होम पर जाएँ</button>
+    </div>
+</div>
+
+<script>
+    let userName = localStorage.getItem("quiz_user_name");
+
+    window.onload = function() {
+        if (!userName) {
+            document.getElementById('name-screen').style.display = 'block';
+        } else {
+            showHome();
+        }
+    };
+
+    function saveName() {
+        let input = document.getElementById('user-name-input').value;
+        if(input.trim() !== "") {
+            localStorage.setItem("quiz_user_name", input);
+            userName = input;
+            showHome();
+        } else {
+            alert("कृपया अपना नाम लिखें!");
+        }
+    }
+
+    function showHome() {
+        document.getElementById('name-screen').style.display = 'none';
+        document.getElementById('home').style.display = 'block';
+        document.getElementById('welcome-text').innerText = `नमस्ते, ${userName}! 👋`;
+    }
+
+    // यहाँ आपका पिछला start(), next(), और checkAnswer() वाला लॉजिक रहेगा...
+    // रिजल्ट में रैंक दिखाने के लिए:
+    function showResult(score, total) {
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('quiz').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result-user').innerText = `${userName}, आपकी रिपोर्ट`;
+        
+        let rank = score > 12 ? "A+ (टॉपर)" : score > 8 ? "B (मेहनत करें)" : "C (सुधारें)";
+        document.getElementById('report').innerHTML = `
+            सही उत्तर: ${score} <br>
+            गलत उत्तर: ${total - score} <br>
+            आपकी रैंक: <b>${rank}</b>
+        `;
+    }
+</script>
+</body>
+</html>

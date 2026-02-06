@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro</title>
+    <style>
+        /* प्रीमियम डिजाइन और एनिमेशन */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; 
+        }
+        @keyframes gradient { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
+
+        .card { 
+            background: rgba(255, 255, 255, 0.2); 
+            backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 30px; border-radius: 30px; width: 90%; max-width: 450px; 
+            text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.2); color: white;
+        }
+        .hidden { display: none; }
+        
+        .option { 
+            background: rgba(255, 255, 255, 0.9); color: #333; padding: 15px; 
+            margin: 12px 0; border-radius: 15px; cursor: pointer; 
+            font-weight: bold; transition: all 0.3s ease; transform: scale(1);
+        }
+        .option:active { transform: scale(0.95); }
+        .correct { background: #4caf50 !important; color: white !important; box-shadow: 0 0 15px #4caf50; }
+        .wrong { background: #f44336 !important; color: white !important; box-shadow: 0 0 15px #f44336; }
+
+        .btn { 
+            padding: 15px; width: 100%; border: none; border-radius: 15px; 
+            cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 16px; 
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        #rank-tag { 
+            background: linear-gradient(90deg, #ffd700, #ffa500); color: #000; 
+            padding: 8px 20px; border-radius: 50px; font-size: 14px; 
+            font-weight: 900; display: inline-block; margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+        input { 
+            width: 85%; padding: 15px; border-radius: 15px; border: none; 
+            margin-bottom: 20px; font-size: 16px; outline: none; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div id="login-screen">
+        <h1 style="font-size: 2.5em; margin-bottom: 10px;">🏆</h1>
+        <h2 style="margin-top: 0;">10th Quiz Pro</h2>
+        <input type="text" id="username" placeholder="अपना नाम यहाँ लिखें...">
+        <button class="btn" style="background:#4caf50; color:white;" onclick="saveUser()">प्रवेश करें</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div id="rank-tag">RANK: #1</div>
+        <p style="font-size: 1.1em;">छात्र: <span id="user-display" style="color:#ffd700; font-weight:900;"></span></p>
+        <hr style="opacity: 0.3;">
+        <h3 id="question-text" style="font-size: 1.3em; min-height: 60px;"></h3>
+        <div id="options-container"></div>
+        <div style="display:flex; gap:10px; margin-top: 20px;">
+            <button class="btn" style="background:rgba(255,255,255,0.2); color:white;" onclick="skipQuestion()">Skip</button>
+            <button class="btn" style="background:#f44336; color:white;" onclick="finishQuiz()">Submit</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h2 style="font-size: 2em;">रिजल्ट 📊</h2>
+        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px; margin-bottom: 20px;">
+            <p id="final-stats" style="font-size: 1.2em;"></p>
+            <h1 id="accuracy-display" style="margin: 0; color:#ffd700;"></h1>
+        </div>
+        
+        <div id="download-section" class="hidden">
+            <button class="btn" style="background:#2196f3; color:white;" onclick="downloadResult()">डाउनलोड रिजल्ट 📥</button>
+        </div>
+        
+        <button class="btn" style="background:#4caf50; color:white;" onclick="location.reload()">दोबारा खेलें</button>
+    </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+    let currentQuestions = [];
+    let qIdx = 0;
+    let score = 0;
+
+    window.onload = function() {
+        let savedName = localStorage.getItem("abhishek_user");
+        if(savedName) { startQuizFlow(savedName); }
+        
+        // ऐप और वेबसाइट के बीच डाउनलोड बटन का अंतर
+        if (!window.matchMedia('(display-mode: standalone)').matches) {
+            document.getElementById("download-section").classList.remove("hidden");
+        }
+    }
+
+    function saveUser() {
+        let name = document.getElementById("username").value;
+        if(name.trim() == "") return alert("नाम लिखें!");
+        localStorage.setItem("abhishek_user", name);
+        startQuizFlow(name);
+    }
+
+    function startQuizFlow(name) {
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("quiz-screen").classList.remove("hidden");
+        document.getElementById("user-display").innerText = name.toUpperCase();
+        setupQuestions();
+    }
+
+    function setupQuestions() {
+        let allKeys = Object.keys(quizData);
+        let randomSub = allKeys[Math.floor(Math.random() * allKeys.length)];
+        currentQuestions = [...quizData[randomSub]].sort(() => 0.5 - Math.random()).slice(0, 15);
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if(qIdx >= currentQuestions.length) return finishQuiz();
+        let qData = currentQuestions[qIdx];
+        document.getElementById("question-text").innerText = qData.q;
+        let container = document.getElementById("options-container");
+        container.innerHTML = "";
+        
+        [...qData.o].sort(() => 0.5 - Math.random()).forEach(opt => {
+            let d = document.createElement("div");
+            d.className = "option";
+            d.innerText = opt;
+            d.onclick = () => checkAns(d, opt, qData.a);
+            container.appendChild(d);
+        });
+    }
+
+    function checkAns(el, sel, cor) {
+        if(sel === cor) {
+            el.classList.add("correct");
+            score++;
+            setTimeout(() => { qIdx++; loadQuestion(); }, 500); // 0.5s डिले
+        } else {
+            el.classList.add("wrong");
+            setTimeout(() => { qIdx++; loadQuestion(); }, 800);
+        }
+    }
+
+    function skipQuestion() { qIdx++; loadQuestion(); }
+
+    function finishQuiz() {
+        document.getElementById("quiz-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+        document.getElementById("final-stats").innerText = `सही उत्तर: ${score} / ${currentQuestions.length}`;
+        let acc = (score / currentQuestions.length) * 100;
+        document.getElementById("accuracy-display").innerText = `${acc.toFixed(0)}%`;
+    }
+
+    function downloadResult() {
+        let name = localStorage.getItem("abhishek_user");
+        let content = `10th Quiz Pro Result\nStudent: ${name}\nScore: ${score}/15`;
+        let blob = new Blob([content], {type: "text/plain"});
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `Result_${name}.txt`;
+        a.click();
+    }
+</script>
+</body>
+</html>

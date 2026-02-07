@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro</title>
+    <style>
+        /* आपकी पुरानी डिजाइन को वैसे ही रखा गया है */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background: #f4f4f4; margin: 0; padding: 20px; }
+        .card { background: white; padding: 20px; margin: 20px auto; max-width: 500px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn { padding: 12px 25px; margin: 8px; border: none; border-radius: 8px; background: #4caf50; color: white; cursor: pointer; font-size: 16px; width: 85%; transition: 0.3s; }
+        .btn:hover { background: #45a049; transform: scale(1.02); }
+        .hidden { display: none; }
+        #options-container button { display: block; width: 100%; margin: 10px 0; background: #2196F3; }
+        input { padding: 12px; width: 80%; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="login-screen">
+    <h1>10th Quiz Pro</h1>
+    <p>अपनी तैयारी शुरू करने के लिए नाम लिखें</p>
+    <input type="text" id="username" placeholder="आपका नाम यहाँ...">
+    <button class="btn" onclick="saveUser()">आगे बढ़ें</button>
+</div>
+
+<div class="card hidden" id="subject-menu">
+    <h2>अपना विषय चुनें</h2>
+    <button class="btn" onclick="selectSubject('विज्ञान')">विज्ञान</button>
+    <button class="btn" onclick="selectSubject('गणित')">गणित</button>
+    <button class="btn" onclick="selectSubject('विज्ञान')">सामाजिक विज्ञान</button> 
+    <button class="btn" onclick="selectSubject('हिंदी')">हिंदी</button>
+    <button class="btn" onclick="selectSubject('अंग्रेजी')">अंग्रेजी</button>
+    <button class="btn" onclick="selectSubject('संस्कृत')">संस्कृत</button>
+</div>
+
+<div class="card hidden" id="quiz-screen">
+    <h3 id="subject-display" style="color: #4caf50;"></h3>
+    <p id="question-text" style="font-size: 20px; font-weight: bold;"></p>
+    <div id="options-container"></div>
+</div>
+
+<div class="card hidden" id="result-screen">
+    <h2>क्विज़ समाप्त!</h2>
+    <p id="final-stats" style="font-size: 18px;"></p>
+    <button class="btn" onclick="location.reload()">दोबारा शुरू करें</button>
+</div>
+
+<script src="questions.js"></script>
+<script>
+    let currentQuestions = [];
+    let qIdx = 0;
+    let score = 0;
+    let userName = "";
+
+    function saveUser() {
+        userName = document.getElementById("username").value;
+        if (userName.trim() === "") return alert("कृपया अपना नाम दर्ज करें!");
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("subject-menu").classList.remove("hidden");
+    }
+
+    // यही वह स्मार्ट कोड है जो questions.js को स्कैन करेगा
+    function selectSubject(subjectName) {
+        currentQuestions = []; // पुरानी लिस्ट साफ़ करें
+        
+        if (typeof quizData !== 'undefined') {
+            // पूरी quizData फाइल को स्कैन करें
+            for (let key in quizData) {
+                // अगर की (Key) में विषय का नाम मिलता है, तो उसे जोड़ लें
+                if (key.includes(subjectName) || subjectName.includes(key)) {
+                    currentQuestions = currentQuestions.concat(quizData[key]);
+                }
+            }
+        }
+
+        if (currentQuestions.length > 0) {
+            document.getElementById("subject-display").innerText = "विषय: " + subjectName;
+            document.getElementById("subject-menu").classList.add("hidden");
+            document.getElementById("quiz-screen").classList.remove("hidden");
+            qIdx = 0;
+            score = 0;
+            showQuestion();
+        } else {
+            alert("माफ करें, '" + subjectName + "' के सवाल नहीं मिले! अपनी फाइल चेक करें।");
+        }
+    }
+
+    function showQuestion() {
+        if (qIdx < currentQuestions.length) {
+            let qData = currentQuestions[qIdx];
+            document.getElementById("question-text").innerText = (qIdx + 1) + ". " + qData.q;
+            let optionsDiv = document.getElementById("options-container");
+            optionsDiv.innerHTML = "";
+            
+            if(qData.o) {
+                qData.o.forEach((opt, index) => {
+                    let btn = document.createElement("button");
+                    btn.innerText = opt;
+                    btn.className = "btn";
+                    btn.onclick = () => checkAnswer(index, qData.a);
+                    optionsDiv.appendChild(btn);
+                });
+            }
+        } else {
+            finishQuiz();
+        }
+    }
+
+    function checkAnswer(selected, correct) {
+        if (selected === correct) score++;
+        qIdx++;
+        showQuestion();
+    }
+
+    function finishQuiz() {
+        document.getElementById("quiz-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+        document.getElementById("final-stats").innerText = userName + ", आपका स्कोर: " + score + " / " + currentQuestions.length;
+    }
+</script>
+</body>
+</html>

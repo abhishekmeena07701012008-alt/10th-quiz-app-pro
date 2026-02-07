@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab); background-size: 400% 400%; animation: gradient 15s ease infinite; margin: 0; padding: 20px; min-height: 100vh; }
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .card { background: rgba(255, 255, 255, 0.9); padding: 25px; margin: auto; max-width: 450px; border-radius: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .btn { padding: 15px; margin: 10px; border: none; border-radius: 12px; background: #2e7d32; color: white; cursor: pointer; font-size: 18px; width: 90%; font-weight: bold; transition: 0.3s; }
+        .btn:active { transform: scale(0.95); }
+        .hidden { display: none; }
+        .option-btn { background: #1565c0 !important; margin: 8px 0 !important; }
+    </style>
+</head>
+<body>
+
+<div class="card" id="login-screen">
+    <h1>10th Quiz Pro</h1>
+    <input type="text" id="username" style="padding:12px; width:80%; border-radius:8px; border:1px solid #ccc;" placeholder="अपना नाम लिखें...">
+    <br><br>
+    <button class="btn" onclick="saveUser()">शुरू करें</button>
+</div>
+
+<div class="card hidden" id="subject-menu">
+    <h2>अपना विषय चुनें</h2>
+    <button class="btn" onclick="masterScanner('विज्ञान')">विज्ञान</button>
+    <button class="btn" onclick="masterScanner('गणित')">गणित</button>
+    <button class="btn" onclick="masterScanner('सामाजिक')">सामाजिक विज्ञान</button>
+    <button class="btn" onclick="masterScanner('हिंदी')">हिंदी</button>
+    <button class="btn" onclick="masterScanner('अंग्रेजी')">अंग्रेजी</button>
+    <button class="btn" onclick="masterScanner('संस्कृत')">संस्कृत</button>
+</div>
+
+<div class="card hidden" id="quiz-screen">
+    <h3 id="subj-tag" style="color: #1565c0;"></h3>
+    <p id="q-text" style="font-size: 20px; font-weight: bold;"></p>
+    <div id="options-box"></div>
+</div>
+
+<div class="card hidden" id="result-screen">
+    <h2>रिजल्ट</h2>
+    <p id="score-display" style="font-size: 18px;"></p>
+    <button class="btn" onclick="location.reload()">दोबारा प्रयास करें</button>
+</div>
+
+<script src="questions.js"></script>
+<script>
+    let qList = [];
+    let currentIdx = 0;
+    let userScore = 0;
+    let uName = "";
+
+    function saveUser() {
+        uName = document.getElementById("username").value;
+        if (!uName) return alert("कृपया नाम दर्ज करें!");
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("subject-menu").classList.remove("hidden");
+    }
+
+    // मास्टर स्कैनर: यह आपकी 'questions.js' की बिखरी हुई फाइलों को जोड़ देगा
+    function masterScanner(subName) {
+        qList = [];
+        for (let key in quizData) {
+            // विषय के नाम का मिलान (जैसे 'विज्ञा' को 'विज्ञान' से जोड़ना)
+            if (key.includes(subName.substring(0, 3))) {
+                qList = qList.concat(quizData[key]);
+            }
+        }
+
+        if (qList.length > 0) {
+            document.getElementById("subj-tag").innerText = "विषय: " + subName;
+            document.getElementById("subject-menu").classList.add("hidden");
+            document.getElementById("quiz-screen").classList.remove("hidden");
+            currentIdx = 0; userScore = 0;
+            displayQ();
+        } else {
+            alert("डेटा लोड नहीं हो सका! कृपया अपनी questions.js चेक करें।");
+        }
+    }
+
+    function displayQ() {
+        if (currentIdx < qList.length) {
+            let data = qList[currentIdx];
+            document.getElementById("q-text").innerText = (currentIdx + 1) + ". " + data.q;
+            let box = document.getElementById("options-box");
+            box.innerHTML = "";
+            
+            if(data.o && data.o.length > 0) {
+                data.o.forEach((opt, i) => {
+                    let b = document.createElement("button");
+                    b.innerText = opt;
+                    b.className = "btn option-btn";
+                    b.onclick = () => { 
+                        if(i === data.a) userScore++; 
+                        currentIdx++; 
+                        displayQ(); 
+                    };
+                    box.appendChild(b);
+                });
+            } else {
+                // अगर ऑप्शन नहीं हैं तो 2 सेकंड बाद अगला सवाल
+                setTimeout(() => { currentIdx++; displayQ(); }, 2000);
+            }
+        } else {
+            document.getElementById("quiz-screen").classList.add("hidden");
+            document.getElementById("result-screen").classList.remove("hidden");
+            document.getElementById("score-display").innerText = uName + ", आपका स्कोर: " + userScore + "/" + qList.length;
+        }
+    }
+</script>
+</body>
+</html>

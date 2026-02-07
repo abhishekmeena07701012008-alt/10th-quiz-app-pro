@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - All Subjects</title>
+    <style>
+        /* शानदार डिजाइनिंग के लिए CSS */
+        :root { --primary: #4A90E2; --success: #2ECC71; --error: #E74C3C; --dark: #2C3E50; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        #app-container { background: white; width: 90%; max-width: 500px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .hidden { display: none; }
+        .option-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 16px; background: none; }
+        .option-btn:hover { border-color: var(--primary); }
+        .correct { background-color: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background-color: var(--error) !important; color: white; border-color: var(--error); }
+        input[type="text"] { width: 80%; padding: 10px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ccc; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; }
+        .nav-btns { display: flex; justify-content: space-between; margin-top: 20px; }
+        #rank-badge { font-weight: bold; color: gold; font-size: 1.2em; }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="name-screen">
+        <h2>स्वागत है! अपना नाम लिखें</h2>
+        <input type="text" id="user-name" placeholder="आपका नाम यहाँ लिखें...">
+        <br>
+        <button class="btn-main" onclick="saveName()">शुरू करें</button>
+    </div>
+
+    <div id="subject-screen" class="hidden">
+        <h3>नमस्ते <span id="display-name"></span>! विषय चुनें</h3>
+        <div id="subject-buttons"></div>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div style="display: flex; justify-content: space-between;">
+            <span id="rank-badge">रैंक: गणना जारी...</span>
+            <span id="timer">प्रश्न: <span id="current-count">1</span>/15</span>
+        </div>
+        <hr>
+        <h3 id="question-text">प्रश्न यहाँ आएगा...</h3>
+        <div id="options-box"></div>
+        <div class="nav-btns">
+            <button class="btn-main" style="background:#95a5a6" onclick="skipQuestion()">स्किप करें</button>
+            <button class="btn-main" style="background:#e67e22" onclick="showResults()">सबमिट करें</button>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h2>क्विज़ समाप्त!</h2>
+        <p id="score-text"></p>
+        <p id="accuracy-text"></p>
+        <button class="btn-main" onclick="location.reload()">दोबारा प्रयास करें</button>
+    </div>
+</div>
+
+<script src="questions.js"></script>
+
+<script>
+    let userName = "";
+    let selectedSubject = "";
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    // 1. नाम सेव करना (ताकि बार-बार न पूछे)
+    window.onload = () => {
+        const savedName = localStorage.getItem("quiz_user_name");
+        if(savedName) {
+            userName = savedName;
+            showSubjects();
+        }
+    };
+
+    function saveName() {
+        const nameInput = document.getElementById("user-name").value;
+        if(nameInput) {
+            localStorage.setItem("quiz_user_name", nameInput);
+            userName = nameInput;
+            showSubjects();
+        } else { alert("कृपया नाम दर्ज करें"); }
+    }
+
+    // 2. विषयों के बटन बनाना (6 विषय)
+    function showSubjects() {
+        document.getElementById("name-screen").classList.add("hidden");
+        document.getElementById("subject-screen").classList.remove("hidden");
+        document.getElementById("display-name").innerText = userName;
+        
+        const subjects = Object.keys(quizData);
+        const container = document.getElementById("subject-buttons");
+        container.innerHTML = "";
+        subjects.forEach(sub => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = sub;
+            btn.onclick = () => startQuiz(sub);
+            container.appendChild(btn);
+        });
+    }
+
+    // 3. क्विज़ शुरू करना (शफलिंग और 15 सवाल चुनना)
+    function startQuiz(subject) {
+        selectedSubject = subject;
+        let allQuestions = [...quizData[subject]];
+        // शफलिंग (Shuffling)
+        allQuestions.sort(() => Math.random() - 0.5);
+        // सिर्फ 15 सवाल लेना
+        currentQuestions = allQuestions.slice(0, 15);
+        
+        document.getElementById("subject-screen").classList.add("hidden");
+        document.getElementById("quiz-screen").classList.remove("hidden");
+        showQuestion();
+    }
+
+    // 4. प्रश्न दिखाना
+    function showQuestion() {
+        if(currentIndex >= 15) return showResults();
+        
+        const qData = currentQuestions[currentIndex];
+        document.getElementById("current-count").innerText = currentIndex + 1;
+        document.getElementById("question-text").innerText = qData.q;
+        
+        const optionsBox = document.getElementById("options-box");
+        optionsBox.innerHTML = "";
+        
+        // विकल्पों की शफलिंग
+        let shuffledOptions = [...qData.o].sort(() => Math.random() - 0.5);
+        
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, qData.a);
+            optionsBox.appendChild(btn);
+        });
+        updateRank();
+    }
+
+    // 5. उत्तर की जांच और 0.5 सेकंड का ट्रांजिशन
+    function checkAnswer(btn, selected, correct) {
+        const allBtns = document.querySelectorAll(".option-btn");
+        allBtns.forEach(b => b.disabled = true); // दोबारा क्लिक रोकें
+
+        if(selected === correct) {
+            btn.classList.add("correct");
+            score += 10;
+            correctCount++;
+        } else {
+            btn.classList.add("wrong");
+            wrongCount++;
+            // सही उत्तर को हरा दिखाएँ
+            allBtns.forEach(b => { if(b.innerText === correct) b.classList.add("correct"); });
+        }
+
+        setTimeout(() => {
+            currentIndex++;
+            showQuestion();
+        }, 500); // 0.5 सेकंड का गैप जैसा आपने माँगा था
+    }
+
+    function skipQuestion() {
+        currentIndex++;
+        showQuestion();
+    }
+
+    // 6. रैंक और स्कोर अपडेट करना
+    function updateRank() {
+        let rank = "C";
+        if(score > 100) rank = "A++";
+        else if(score > 70) rank = "A";
+        else if(score > 40) rank = "B";
+        document.getElementById("rank-badge").innerText = "रैंक: " + rank;
+    }
+
+    function showResults() {
+        document.getElementById("quiz-screen").classList.add("hidden");
+        document.getElementById("result-screen").classList.remove("hidden");
+        
+        const accuracy = Math.round((correctCount / 15) * 100);
+        document.getElementById("score-text").innerText = `${userName}, आपका स्कोर: ${score}`;
+        document.getElementById("accuracy-text").innerText = `शुद्धता (Accuracy): ${accuracy}% | सही: ${correctCount} | गलत: ${wrongCount}`;
+    }
+</script>
+
+</body>
+</html>

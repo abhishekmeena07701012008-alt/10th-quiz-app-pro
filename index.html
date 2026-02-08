@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .quiz-container { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 500px; text-align: center; }
+        h1 { color: #333; }
+        .btn { background: #4CAF50; color: white; border: none; padding: 12px 20px; margin: 10px; border-radius: 8px; cursor: pointer; width: 80%; font-size: 16px; }
+        .btn:hover { background: #45a049; }
+        .hidden { display: none; }
+        .option-btn { background: #e7e7e7; color: black; }
+        .option-btn:hover { background: #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>🎓 10th Quiz Pro</h1>
+    
+    <div id="subject-screen">
+        <h3>विषय चुनें:</h3>
+        <button class="btn" onclick="startQuiz('Science')">Science (विज्ञान)</button>
+        <button class="btn" onclick="startQuiz('Maths')">Maths (गणित)</button>
+        <button class="btn" onclick="startQuiz('Social_Science')">Social Science</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">

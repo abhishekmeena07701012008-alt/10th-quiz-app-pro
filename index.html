@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Scanner</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #eef2f3; display: flex; justify-content: center; padding: 20px; }
+        .quiz-box { background: #fff; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        h1 { color: #2c3e50; margin-bottom: 20px; }
+        .btn { background: #3498db; color: white; border: none; padding: 12px; margin: 8px 0; border-radius: 8px; cursor: pointer; width: 100%; font-size: 17px; transition: 0.3s; }
+        .btn:hover { background: #2980b9; }
+        .hidden { display: none; }
+        #status { color: #7f8c8d; font-size: 14px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-box">
+    <h1>🎓 10th Quiz Pro</h1>
+    <div id="status">JSON फ़ाइल स्कैन की जा रही है...</div>
+
+    <div id="subject-menu" class="hidden">
+        <h3>विषय चुनें:</h3>
+        <div id="subject-buttons"></div>
+    </div>
+
+    <div id="quiz-area" class="hidden">
+        <h3 id="question-text"></h3>
+        <div id="options-area"></div>
+        <hr>
+        <p>स्कोर: <span id="score-count">0</span></p>
+    </div>
+
+    <div id="result-area" class="hidden">
+        <h2>परीक्षा पूर्ण!</h2>
+        <p id="final-result"></p>
+        <button class="btn" onclick="location.reload()">दोबारा प्रयास करें</button>
+    </div>
+</div>
+
+<script>
+    let quizData = null;
+    let currentQuestions = [];
+    let qIndex = 0;
+    let score = 0;
+
+    // JSON फ़ाइल को स्कैन और लोड करना
+    async function scanQuestionFile() {
+        try {
+            const response = await fetch('questions.json'); // यह आपकी फाइल को स्कैन करेगा
+            if (!response.ok) throw new Error("फ़ाइल नहीं मिली");
+            quizData = await response.json();
+            
+            document.getElementById('status').innerText = "✅ फ़ाइल सफलतापूर्वक स्कैन हो गई!";
+            showSubjects();
+        } catch (error) {
+            document.getElementById('status').innerText = "❌ एरर: questions.json फ़ाइल नहीं मिली!";
+            console.error(error);
+        }
+    }
+
+    function showSubjects() {
+        document.getElementById('status').classList.add('hidden');
+        const menu = document.getElementById('subject-menu');
+        const btnContainer = document.getElementById('subject-buttons');
+        menu.classList.remove('hidden');
+
+        // JSON से सब्जेक्ट्स को डायनामिक रूप से निकालना
+        Object.keys(quizData).forEach(subject => {
+            const b = document.createElement('button');
+            b.innerText = subject;
+            b.className = "btn";
+            b.onclick = () => startQuiz(subject);
+            btnContainer.appendChild(b);
+        });
+    }
+
+    function startQuiz(sub) {
+        currentQuestions = quizData[sub];
+        qIndex = 0;
+        score = 0;
+        document.getElementById('subject-menu').classList.add('hidden');
+        document.getElementById('quiz-area').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (qIndex < currentQuestions.length) {
+            const q = currentQuestions[qIndex];
+            document.getElementById('question-text').innerText = q.q;
+            const optArea = document.getElementById('options-area');
+            optArea.innerHTML = "";
+
+            q.options.forEach(opt => {
+                const b = document.createElement('button');
+                b.innerText = opt;
+                b.className = "btn";
+                b.style.background = "#95a5a6";
+                b.onclick = () => checkAns(opt, q.ans);
+                optArea.appendChild(b);
+            });
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function checkAns(selected, correct) {
+        if (selected === correct) {
+            score++;
+            alert("सही!");
+        } else {
+            alert("गलत! सही उत्तर: " + correct);
+        }
+        qIndex++;
+        document.getElementById('score-count').innerText = score;
+        loadQuestion();
+    }
+
+    function showFinalResult() {
+        document.getElementById('quiz-area').classList.add('hidden');
+        document.getElementById('result-area').classList.remove('hidden');
+        document.getElementById('final-result').innerText = `आपका स्कोर: ${score} / ${currentQuestions.length}`;
+    }
+
+    // पेज लोड होते ही स्कैन शुरू करें
+    scanQuestionFile();
+</script>
+
+</body>
+</html>

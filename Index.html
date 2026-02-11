@@ -1,0 +1,64 @@
+// प्रश्नों का डेटाबेस (यहाँ आप हर विषय के 50 प्रश्न जोड़ सकते हैं)
+const quizData = {
+    science: [
+        { q: "प्रकाश संश्लेषण के लिए क्या आवश्यक है?", a: ["क्लोरोफिल", "सूर्य का प्रकाश", "CO2", "उपरोक्त सभी"], correct: 3 },
+        { q: "मानव शरीर की सबसे बड़ी ग्रंथि कौन सी है?", a: ["यकृत", "अग्न्याशय", "थायरॉयड", "पीयूष"], correct: 0 },
+        // ... यहाँ 50 प्रश्न जोड़ें
+    ],
+    maths: [
+        { q: "π (पाई) क्या है?", a: ["परिमेय संख्या", "अपरिमेय संख्या", "पूर्णांक", "प्राकृतिक संख्या"], correct: 1 },
+        // ... यहाँ 50 प्रश्न जोड़ें
+    ]
+};
+
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+
+function startQuiz(subject) {
+    document.getElementById('subject-selection').classList.add('hidden');
+    document.getElementById('quiz-container').classList.remove('hidden');
+    
+    // 1. प्रश्नों को रेंडमाइज करना (Shuffle questions)
+    let allSubjectQuestions = [...quizData[subject]];
+    currentQuestions = allSubjectQuestions.sort(() => Math.random() - 0.5).slice(0, 10); // 10 रैंडम प्रश्न चुनना
+    
+    showQuestion();
+}
+
+function showQuestion() {
+    const qData = currentQuestions[currentQuestionIndex];
+    document.getElementById('current-q').innerText = currentQuestionIndex + 1;
+    document.getElementById('question-text').innerText = qData.q;
+    
+    const optionsDiv = document.getElementById('options-container');
+    optionsDiv.innerHTML = '';
+
+    // 2. ऑप्शंस को शफल करना (Answer Shuffling)
+    let options = qData.a.map((text, index) => ({ text, isCorrect: index === qData.correct }));
+    options.sort(() => Math.random() - 0.5);
+
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.innerText = opt.text;
+        btn.onclick = () => handleAnswer(opt.isCorrect);
+        optionsDiv.appendChild(btn);
+    });
+}
+
+function handleAnswer(isCorrect) {
+    if (isCorrect) score++;
+    
+    currentQuestionIndex++;
+    if (currentQuestionIndex < currentQuestions.length) {
+        showQuestion();
+    } else {
+        showResult();
+    }
+}
+
+function showResult() {
+    document.getElementById('quiz-container').classList.add('hidden');
+    document.getElementById('result-container').classList.remove('hidden');
+    document.getElementById('score-text').innerText = `आपने 10 में से ${score} अंक प्राप्त किए।`;
+}

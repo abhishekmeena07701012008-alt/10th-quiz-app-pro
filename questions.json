@@ -1,0 +1,21 @@
+{
+  "science": [
+    {
+      "question": "प्रकाश संश्लेषण में कौन सी गैस निकलती है?",
+      "options": ["Oxygen", "CO2", "Nitrogen", "Hydrogen"],
+      "answer": "Oxygen"
+    },
+    {
+      "question": "मानव शरीर का सामान्य तापमान कितना होता है?",
+      "options": ["37°C", "98°C", "45°C", "32°C"],
+      "answer": "37°C"
+    }
+  ],
+  "maths": [
+    {
+      "question": "वृत्त के क्षेत्रफल का सूत्र क्या है?",
+      "options": ["2πr", "πr²", "2π", "πd"],
+      "answer": "πr²"
+    }
+  ]
+}

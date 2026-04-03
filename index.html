@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Smart Learning</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --secondary: #F5F7FA;
+            --accent: #FFD700;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--secondary);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .quiz-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 { color: var(--primary); margin-bottom: 20px; }
+        .subject-btns button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .subject-btns button:hover { transform: scale(1.05); background: #357ABD; }
+        #quiz-box { display: none; margin-top: 20px; }
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: none;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+        }
+        .option-btn:hover { border-color: var(--primary); background: #f0f7ff; }
+        .score { font-weight: bold; color: green; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="home">
+        <h1>10th Quiz Pro 🚀</h1>
+        <p>अपना विषय चुनें:</p>
+        <div class="subject-btns">
+            <button onclick="startQuiz('science')">Science</button>
+            <button onclick="startQuiz('maths')">Maths</button>
+        </div>
+    </div>
+
+    <div id="quiz-box">
+        <h3 id="question-text">सवाल यहाँ दिखेगा...</h3>
+        <div id="options-container"></div>
+        <p class="score">Score: <span id="score-val">0</span></p>
+        <button onclick="location.reload()" style="background:#ff4757; color:white; border:none; padding:8px; border-radius:5px; margin-top:10px;">Exit</button>
+    </div>
+</div>
+
+<script>
+    let allData = {};
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    // 1. JSON फाइल से डेटा लोड करना
+    async function loadData() {
+        try {
+            const response = await fetch('questions.json');
+            allData = await response.json();
+        } catch (e) {
+            alert("Error: questions.json फाइल नहीं मिली!");
+        }
+    }
+
+    // 2. क्विज़ शुरू करना
+    function startQuiz(subject) {
+        currentQuestions = allData[subject];
+        if(!currentQuestions) return;
+        
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('quiz-box').style.display = 'block';
+        showQuestion();
+    }
+
+    // 3. सवाल दिखाना
+    function showQuestion() {
+        const q = currentQuestions[currentIndex];
+        document.getElementById('question-text').innerText = q.question;
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt, q.answer);
+            container.appendChild(btn);
+        });
+    }
+
+    // 4. उत्तर चेक करना
+    function checkAnswer(selected, correct) {
+        if(selected === correct) {
+            score++;
+            document.getElementById('score-val').innerText = score;
+            alert("सही जवाब! 🎉");
+        } else {
+            alert("गलत! सही जवाब था: " + correct);
+        }
+
+        currentIndex++;
+        if(currentIndex < currentQuestions.length) {
+            showQuestion();
+        } else {
+            alert("क्विज़ खत्म! आपका टोटल स्कोर: " + score);
+            location.reload();
+        }
+    }
+
+    window.onload = loadData;
+</script>
+
+</body>
+</html>

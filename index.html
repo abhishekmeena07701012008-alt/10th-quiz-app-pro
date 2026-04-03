@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro 🚀</title>
+    <style>
+        :root { --primary: #4A90E2; --correct: #27ae60; --wrong: #e74c3c; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .quiz-card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 90%; max-width: 450px; text-align: center; }
+        h1 { color: var(--primary); margin-bottom: 5px; font-size: 24px; }
+        .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .btn { padding: 12px; border: none; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 15px; }
+        .sub-btn { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3); }
+        .sub-btn:hover { transform: translateY(-2px); background: #357ABD; }
+        .option-btn { width: 100%; margin: 8px 0; background: #fff; border: 2px solid #eee; text-align: left; transition: 0.2s; }
+        .option-btn.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
+        .option-btn.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); }
+        .progress-container { height: 8px; background: #eee; border-radius: 4px; margin-bottom: 20px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary); width: 0%; transition: 0.4s; }
+        #quiz-box { display: none; }
+        #q-text { font-size: 18px; color: #333; margin-bottom: 20px; min-height: 50px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-card">
+    <div id="home">
+        <h1>10th Quiz Pro 🚀</h1>
+        <p style="color: #777; font-size: 14px;">तैयारी जीत की! विषय चुनें:</p>
+        <div class="subject-grid">
+            <button class="btn sub-btn" onclick="startQuiz('science')">Science</button>
+            <button class="btn sub-btn" onclick="startQuiz('maths')">Maths</button>
+            <button class="btn sub-btn" onclick="startQuiz('social_science')">S. Science</button>
+            <button class="btn sub-btn" onclick="startQuiz('hindi')">Hindi</button>
+            <button class="btn sub-btn" onclick="startQuiz('english')">English</button>
+            <button class="btn sub-btn" onclick="startQuiz('sanskrit')">Sanskrit</button>
+        </div>
+    </div>
+
+    <div id="quiz-box">
+        <div class="progress-container"><div id="progress" class="progress-bar"></div></div>
+        <div id="q-text"></div>
+        <div id="options-container"></div>
+        <p style="margin-top:20px; font-weight:bold; color:#555;">सवाल: <span id="q-count">0</span>/20</p>
+    </div>
+</div>
+
+<script>
+    let allData = {};
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    // डेटा लोड करना
+    async function loadData() {
+        try {
+            const response = await fetch('./questions.json'); // './' का मतलब है सेम फोल्डर
+            if (!response.ok) throw new Error("File not found");
+            allData = await response.json();
+            console.log("Success: Questions loaded!");
+        } catch (e) {
+            console.error("Error:", e);
+            alert("Error: 'questions.json' फाइल नहीं मिली या उसका फॉर्मेट गलत है!");
+        }
+    }
+
+    // शफलिंग फंक्शन
+    function shuffle(array) { return array.sort(() => Math.random() - 0.5); }
+
+    // क्विज़ शुरू करना
+    function startQuiz(subject) {
+        if (!allData[subject] || allData[subject].length === 0) {
+            alert("अभी इस विषय के सवाल नहीं हैं!");
+            return;
+        }
+        
+        // 500 में से रैंडम 20 सवाल चुनना
+        currentQuestions = shuffle([...allData[subject]]).slice(0, 20);
+        currentIndex = 0;
+        score = 0;
+
+        document.getElementById('home').style.display = 'none';
+        document.getElementById('quiz-box').style.display = 'block';
+        showQuestion();
+    }
+
+    // सवाल दिखाना
+    function showQuestion() {
+        const q = currentQuestions[currentIndex];
+        document.getElementById('q-text').innerText = q.question;
+        document.getElementById('q-count').innerText = currentIndex + 1;
+        document.getElementById('progress').style.width = ((currentIndex + 1) / 20 * 100) + "%";
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+
+        // उत्तरों को भी शफल करना
+        const shuffledOptions = shuffle([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn option-btn';
+            btn.innerText = opt;
+            btn.onclick = (e) => checkAnswer(e.target, opt, q.answer);
+            container.appendChild(btn);
+        });
+    }
+
+    // उत्तर चेक करना
+    function checkAnswer(selectedBtn, selectedText, correctText) {
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(b => b.style.pointerEvents = 'none'); // दोबारा क्लिक बंद
+
+        if (selectedText === correctText) {
+            selectedBtn.classList.add('correct');
+            score++;
+        } else {
+            selectedBtn.classList.add('wrong');
+            // सही उत्तर को भी हरा करें
+            btns.forEach(b => { if (b.innerText === correctText) b.classList.add('correct'); });
+        }
+
+        // 1 सेकंड बाद अगला सवाल
+        setTimeout(() => {
+            currentIndex++;
+            if (currentIndex < currentQuestions.length) {
+                showQuestion();
+            } else {
+                alert(`शानदार! आपका स्कोर: ${score}/20`);
+                location.reload();
+            }
+        }, 1000);
+    }
+
+    window.onload = loadData;
+</script>
+
+</body>
+</html>

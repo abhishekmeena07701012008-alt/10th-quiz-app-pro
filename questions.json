@@ -948,5 +948,5 @@
     { "subject": "Social Science", "question": "बॉक्साइट किस धातु का मुख्य अयस्क है?", "options": ["Iron", "Copper", "Aluminum", "Gold"], "answer": "Aluminum" },
     { "subject": "Social Science", "question": "भारत में महिलाओं के लिए आरक्षण कहाँ है?", "options": ["Lok Sabha", "Rajya Sabha", "Panchayati Raj", "State Assembly"], "answer": "Panchayati Raj" },
     { "subject": "Social Science", "question": "स्वर्ण चतुर्भुज (Golden Quadrilateral) क्या है?", "options": ["Railway", "National Highway", "River link", "Air route"], "answer": "National Highway" },
-    { "subject": "Social Science", "question": "जलियाँवाला बाग हत्याकांड कहाँ हुआ था?", "options": ["Amritsar", "Lahore", "Delhi", "Meerut"], "answer": "Amritsar" }
+    { "subject": "Social Science", "question": "जलियाँवाला बाग हत्याकांड कहाँ हुआ था?", "options": ["Amritsar", "Lahore", "Delhi", "Meerut"], "answer": "Amritsar" },
 ]

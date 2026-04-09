@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Ultimate Edition</title>
+    <style>
+        :root { --primary: #2c3e50; --success: #27ae60; --error: #c0392b; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #ecf0f1; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .subject-tag { display: inline-block; background: var(--primary); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; margin-bottom: 10px; }
+        .question-box { font-size: 1.2em; font-weight: bold; margin-bottom: 20px; min-height: 60px; }
+        .options-grid { display: grid; gap: 10px; }
+        .option { padding: 15px; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; transition: 0.3s; font-weight: 500; text-align: left; background: none; width: 100%; font-size: 1em; }
+        .correct { background-color: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background-color: var(--error) !important; color: white; border-color: var(--error); }
+        .score-card { text-align: center; display: none; }
+        .progress-bar { height: 10px; background: #ddd; border-radius: 5px; margin-bottom: 20px; overflow: hidden; }
+        .progress { height: 100%; background: var(--primary); width: 0%; transition: 0.3s; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-area">
+        <div class="progress-bar"><div id="progress" class="progress"></div></div>
+        <div id="subject-name" class="subject-tag">Subject</div>
+        <div id="question-text" class="question-box">सवाल लोड हो रहा है...</div>
+        <div id="options-container" class="options-grid"></div>
+        <p style="margin-top: 20px; color: #7f8c8d;">सवाल: <span id="q-count">1</span>/20</p>
+    </div>
+
+    <div id="result-area" class="score-card">
+        <h1>📊 आपका रिपोर्ट कार्ड</h1>
+        <p id="final-score" style="font-size: 2em; color: var(--primary); font-weight: bold;"></p>
+        <p id="remarks"></p>
+        <button onclick="location.reload()" style="padding: 10px 25px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer;">फिर से टेस्ट दें</button>
+    </div>
+</div>
+
+<script>
+    let allQuestions = [];
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    const TOTAL_QUESTIONS = 20;
+
+    async function initQuiz() {
+        try {
+            const response = await fetch('questions.json');
+            allQuestions = await response.json();
+            startNewSession();
+        } catch (e) {
+            document.getElementById('question-text').innerText = "Error: questions.json फाइल नहीं मिली!";
+        }
+    }
+
+    function startNewSession() {
+        // 1. रैंडम मिक्सिंग और 20 सवाल चुनना
+        currentQuestions = allQuestions
+            .sort(() => 0.5 - Math.random()) 
+            .slice(0, TOTAL_QUESTIONS);
+        
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentIndex >= TOTAL_QUESTIONS) {
+            return showResult();
+        }
+
+        const q = currentQuestions[currentIndex];
+        document.getElementById('subject-name').innerText = q.subject;
+        document.getElementById('question-text').innerText = q.question;
+        document.getElementById('q-count').innerText = currentIndex + 1;
+        document.getElementById('progress').style.width = ((currentIndex + 1) / TOTAL_QUESTIONS * 100) + "%";
+
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+
+        // विकल्पों को रैंडम करना
+        const shuffledOptions = [...q.options].sort(() => 0.5 - Math.random());
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q.answer);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedBtn, selectedOpt, correctOpt) {
+        const buttons = document.querySelectorAll('.option');
+        buttons.forEach(b => b.style.pointerEvents = 'none'); // दोबारा क्लिक न हो
+
+        if (selectedOpt === correctOpt) {
+            selectedBtn.classList.add('correct');
+            score++;
+        } else {
+            selectedBtn.classList.add('wrong');
+            // सही जवाब को ग्रीन करें
+            buttons.forEach(b => {
+                if (b.innerText === correctOpt) b.classList.add('correct');
+            });
+        }
+
+        // 1 सेकंड बाद अगला सवाल
+        setTimeout(() => {
+            currentIndex++;
+            showQuestion();
+        }, 1000);
+    }
+
+    function showResult() {
+        document.getElementById('quiz-area').classList.add('hidden');
+        const resArea = document.getElementById('result-area');
+        resArea.style.display = 'block';
+        
+        document.getElementById('final-score').innerText = `${score} / ${TOTAL_QUESTIONS}`;
+        
+        let msg = "";
+        if(score >= 18) msg = "अद्भुत! आप टॉपर बनेंगे। 🌟";
+        else if(score >= 12) msg = "बहुत अच्छा! थोड़ी और मेहनत की जरूरत है। 👍";
+        else msg = "कोशिश करते रहें, आप बेहतर कर सकते हैं। 💪";
+        
+        document.getElementById('remarks').innerText = msg;
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>

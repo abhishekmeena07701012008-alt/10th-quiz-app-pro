@@ -64,8 +64,6 @@
     { "subject": "Sanskrit/IT", "question": "विद्यालय:' का संधि विच्छेद क्या है?", "options": ["विद्य + लय", "विद्या + आलय", "विद्य + आलय", "वि + द्यालय"], "answer": "विद्या + आलय" },
     { "subject": "Sanskrit/IT", "question": "सबसे तेज कम्प्यूटर कौन सा है?", "options": ["Laptop", "Micro", "Super Computer", "Mainframe"], "answer": "Super Computer" },
     { "subject": "Sanskrit/IT", "question": "गच्छति' किस धातु का रूप है?", "options": ["गम्", "गच्छ", "पठ्", "लिख्"], "answer": "गम्" }
-]
-[
     { "subject": "Science", "question": "ध्वनि की चाल सबसे अधिक किसमें होती है?", "options": ["वायु", "जल", "इस्पात (Steel)", "निर्वात"], "answer": "इस्पात (Steel)" },
     { "subject": "Science", "question": "विटामिन C का रासायनिक नाम क्या है?", "options": ["Retinol", "Ascorbic Acid", "Calciferol", "Tocopherol"], "answer": "Ascorbic Acid" },
     { "subject": "Science", "question": "गुरुत्वाकर्षण का नियम किसने दिया?", "options": ["Einstein", "Newton", "Galileo", "Bohr"], "answer": "Newton" },

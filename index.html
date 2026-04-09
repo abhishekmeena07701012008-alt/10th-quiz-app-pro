@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Premium</title>
+    <style>
+        :root { --primary: #4361ee; --bg: #f0f2f5; --correct: #2ecc71; --wrong: #e74c3c; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: white; width: 92%; max-width: 450px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); overflow: hidden; }
+        #loader { padding: 50px; text-align: center; font-weight: bold; }
+        .progress-bar { height: 6px; background: #eee; width: 100%; }
+        #progress { height: 100%; background: var(--primary); width: 0%; transition: 0.3s; }
+        .quiz-body { padding: 25px; }
+        .question { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; color: #333; line-height: 1.5; }
+        .option { 
+            display: block; width: 100%; padding: 15px; margin-bottom: 10px; border: 2px solid #f0f0f0; 
+            border-radius: 12px; cursor: pointer; background: white; font-size: 1rem; text-align: left; transition: 0.2s;
+        }
+        .correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
+        .wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); }
+        #report { display: none; padding: 40px 20px; text-align: center; }
+        .grade { font-size: 2.5rem; font-weight: 900; color: var(--primary); margin: 15px 0; }
+        .retry-btn { background: var(--primary); color: white; border: none; padding: 12px 35px; border-radius: 50px; cursor: pointer; font-weight: bold; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loader">📝 सवाल लोड हो रहे हैं...</div>
+    <div id="quiz-ui" class="hidden">
+        <div class="progress-bar"><div id="progress"></div></div>
+        <div style="padding: 15px 25px 0; display: flex; justify-content: space-between; font-weight: bold; color: #666;">
+            <span>प्रश्न: <span id="q-num">1</span>/20</span>
+            <span id="score-display">स्कोर: 0</span>
+        </div>
+        <div class="quiz-body">
+            <div class="question" id="ques-text"></div>
+            <div id="options-box"></div>
+        </div>
+    </div>
+    <div id="report">
+        <h2>आपका रिपोर्ट कार्ड</h2>
+        <div class="grade" id="final-score">0/20</div>
+        <p id="feedback" style="font-style: italic; color: #555; margin-bottom: 25px;"></p>
+        <button class="retry-btn" onclick="location.reload()">दोबारा टेस्ट दें</button>
+    </div>
+</div>
+
+<script>
+    let allQuestions = [];
+    let currentSet = [];
+    let qIdx = 0;
+    let score = 0;
+
+    async function init() {
+        try {
+            // आपके स्क्रीनशॉट के अनुसार फाइल का नाम 'question.json' है
+            const res = await fetch('question.json');
+            if (!res.ok) throw new Error();
+            allQuestions = await res.json();
+            
+            // 20 रैंडम सवाल चुनना
+            currentSet = allQuestions.sort(() => 0.5 - Math.random()).slice(0, 20);
+            
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('quiz-ui').classList.remove('hidden');
+            showQuestion();
+        } catch (e) {
+            document.getElementById('loader').innerText = "❌ एरर: 'question.json' फाइल नहीं मिली!";
+        }
+    }
+
+    function showQuestion() {
+        if (qIdx >= currentSet.length) { showReport(); return; }
+
+        const q = currentSet[qIdx];
+        document.getElementById('ques-text').innerText = q.question;
+        document.getElementById('q-num').innerText = qIdx + 1;
+        document.getElementById('progress').style.width = ((qIdx + 1) / 20) * 100 + "%";
+
+        const box = document.getElementById('options-box');
+        box.innerHTML = '';
+
+        // ऑप्शन्स में से '*' हटाना और सही उत्तर पहचानना
+        let correctAnswer = "";
+        let cleanOptions = q.options.map(opt => {
+            if (opt.startsWith('*')) {
+                correctAnswer = opt.substring(1); // '*' हटा कर स्टोर करें
+                return correctAnswer;
+            }
+            return opt;
+        });
+
+        // ऑप्शन्स मिक्स करना
+        cleanOptions.sort(() => 0.5 - Math.random()).forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, correctAnswer);
+            box.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const btns = document.querySelectorAll('.option');
+        btns.forEach(b => b.style.pointerEvents = 'none');
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+            score++;
+            document.getElementById('score-display').innerText = `स्कोर: ${score}`;
+        } else {
+            btn.classList.add('wrong');
+            btns.forEach(b => { if (b.innerText === correct) b.classList.add('correct'); });
+        }
+
+        setTimeout(() => { qIdx++; showQuestion(); }, 1000);
+    }
+
+    function showReport() {
+        document.getElementById('quiz-ui').classList.add('hidden');
+        document.getElementById('report').style.display = 'block';
+        document.getElementById('final-score').innerText = `${score}/20`;
+        
+        const fb = document.getElementById('feedback');
+        if (score >= 18) fb.innerText = "अद्भुत! आपकी तैयारी बहुत ही शानदार है।";
+        else if (score >= 12) fb.innerText = "बहुत अच्छा! आप सही दिशा में मेहनत कर रहे हैं।";
+        else fb.innerText = "चिंता न करें, थोड़ा और अभ्यास करें और फिर से प्रयास करें।";
+    }
+
+    init();
+</script>
+</body>
+</html>

@@ -63,9 +63,8 @@
     { "subject": "Sanskrit/IT", "question": "CPU का मुख्य कार्य क्या है?", "options": ["Storage", "Processing", "Input", "Output"], "answer": "Processing" },
     { "subject": "Sanskrit/IT", "question": "विद्यालय:' का संधि विच्छेद क्या है?", "options": ["विद्य + लय", "विद्या + आलय", "विद्य + आलय", "वि + द्यालय"], "answer": "विद्या + आलय" },
     { "subject": "Sanskrit/IT", "question": "सबसे तेज कम्प्यूटर कौन सा है?", "options": ["Laptop", "Micro", "Super Computer", "Mainframe"], "answer": "Super Computer" },
-    { "subject": "Sanskrit/IT", "question": "गच्छति' किस धातु का रूप है?", "options": ["गम्", "गच्छ", "पठ्", "लिख्"], "answer": "गम्" }
-]
-[
+    { "subject": "Sanskrit/IT", "question": "गच्छति' किस धातु का रूप है?", "options": ["गम्", "गच्छ", "पठ्", "लिख्"], "answer": "गम्" },
+
     { "subject": "Science", "question": "एक अवतल दर्पण की वक्रता त्रिज्या 20 सेमी है। इसकी फोकस दूरी क्या होगी?", "options": ["-10 cm", "10 cm", "20 cm", "40 cm"], "answer": "-10 cm" },
     { "subject": "Science", "question": "एथेनॉल का निर्जलीकरण करने पर कौन सी गैस प्राप्त होती है?", "options": ["Ethene", "Ethyne", "Methane", "Ethane"], "answer": "Ethene" },
     { "subject": "Science", "question": "नेफ्रॉन मानव शरीर के किस अंग की कार्यात्मक इकाई है?", "options": ["Liver", "Kidney", "Brain", "Heart"], "answer": "Kidney" },

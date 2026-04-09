@@ -1011,5 +1011,5 @@
     { "subject": "Sanskrit/IT", "question": "कंप्यूटर साक्षरता दिवस कब मनाया जाता है?", "options": ["2 Dec", "5 June", "1 Jan", "15 Aug"], "answer": "2 Dec" },
     { "subject": "Sanskrit/IT", "question": "'उपकृष्णम्' में कौन सा समास है?", "options": ["Avyayibhav", "Tatpurush", "Dwigu", "Bahuvrihi"], "answer": "Avyayibhav" },
     { "subject": "Sanskrit/IT", "question": "सॉफ्टवेयर के दो मुख्य प्रकार कौन से हैं?", "options": ["System & App", "Hard & Soft", "Inside & Outside", "None"], "answer": "System & App" },
-    { "subject": "Sanskrit/IT", "question": "संस्कृत व्याकरण में 'प्रत्याहार' कितने हैं?", "options": ["40", "42", "44", "46"], "answer": "42" }
+    { "subject": "Sanskrit/IT", "question": "संस्कृत व्याकरण में 'प्रत्याहार' कितने हैं?", "options": ["40", "42", "44", "46"], "answer": "42" },
 ]

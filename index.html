@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Premium</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --correct: #2ecc71;
+            --wrong: #e74c3c;
+            --bg: #f8f9fa;
+            --text: #2b2d42;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: white;
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            margin-top: 20px;
+        }
+
+        /* Subject Selection Grid */
+        .subject-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .subject-btn {
+            padding: 25px 15px;
+            font-size: 0.95em;
+            font-weight: 600;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            background: white;
+            color: var(--primary);
+            border: 2px solid #edf2f4;
+            transition: 0.3s all ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subject-btn:hover {
+            border-color: var(--primary);
+            background: #f0f3ff;
+            transform: translateY(-5px);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: #edf2f4;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            transition: 0.4s ease;
+        }
+
+        /* Question Box */
+        .question-box {
+            font-size: 1.2em;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        /* Options */
+        .option {
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border: 2px solid #edf2f4;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 1em;
+            background: white;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .option:active { transform: scale(0.98); }
+
+        .correct { 
+            background-color: #d4f8e6 !important; 
+            border-color: var(--correct) !important; 
+            color: #1b5e20 !important; 
+        }
+
+        .wrong { 
+            background-color: #fdeaea !important; 
+            border-color: var(--wrong) !important; 
+            color: #b71c1c !important; 
+        }
+
+        .hidden { display: none; }
+
+        /* Loader */
+        #loader {
+            text-align: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Result Card */
+        .score-card h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .restart-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="loader">
+        <div class="spinner"></div>
+        <p>हज़ारो सवाल लोड हो रहे हैं...</p>
+    </div>
+
+    <div id="subject-screen" class="hidden">
+        <h2 style="text-align: center; margin: 0;">📚 10th Quiz Pro</h2>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">अपना पसंदीदा विषय चुनें</p>
+        <div class="subject-grid">
+            <button class="subject-btn" onclick="startQuiz('Science')">🧬<br>Science</button>
+            <button class="subject-btn" onclick="startQuiz('Maths')">📐<br>Maths</button>
+            <button class="subject-btn" onclick="startQuiz('Social Science')">🌍<br>S. Science</button>
+            <button class="subject-btn" onclick="startQuiz('Hindi')">✍️<br>Hindi</button>
+            <button class="subject-btn" onclick="startQuiz('English')">🔤<br>English</button>
+            <button class="subject-btn" onclick="startQuiz('Sanskrit/IT')">💻<br>SKT / IT</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span id="display-subject" style="color: var(--primary); font-weight: bold; text-transform: uppercase; font-size: 0.8em; letter-spacing: 1px;"></span>
+            <span id="q-count" style="background: #f0f3ff; padding: 4px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold;"></span>
+        </div>
+        
+        <div class="progress-container">
+            <div id="progress-fill"></div>
+        </div>
+
+        <div id="question-text" class="question-box"></div>
+        <div id="options-container"></div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <div class="score-card" style="text-align: center;">
+            <p style="font-size: 1.1em; color: #666;">आपका स्कोर</p>
+            <h1 id="final-score">0/20</h1>
+            <p id="remarks" style="font-weight: 500; margin-bottom: 30px;"></p>
+            <button class="restart-btn" onclick="location.reload()">दोबारा कोशिश करें</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let allData = [];
+    let selectedQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    // डेटा लोड करना (1500+ सवालों के लिए ऑप्टिमाइज्ड)
+    async function loadData() {
+        try {
+            const response = await fetch('questions.json');
+            allData = await response.json();
+            // लोड होने के बाद लोडर छुपाएं और सब्जेक्ट स्क्रीन दिखाएं
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('subject-screen').classList.remove('hidden');
+        } catch (e) {
+            document.getElementById('loader').innerHTML = "❌ डेटा लोड करने में समस्या आई!";
+        }
+    }
+
+    function startQuiz(subject) {
+        const filtered = allData.filter(q => q.subject === subject);
+        
+        if(filtered.length === 0) {
+            alert("सब्जेक्ट नहीं मिला!");
+            return;
+        }
+
+        // 1500 सवालों में से रैंडम 20 चुनना
+        selectedQuestions = filtered.sort(() => 0.5 - Math.random()).slice(0, 20);
+        
+        document.getElementById('display-subject').innerText = subject;
+        document.getElementById('subject-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        
+        showQuestion();
+    }
+
+    function showQuestion() {
+        if (currentIndex >= selectedQuestions.length) return showResult();
+
+        const q = selectedQuestions[currentIndex];
+        
+        // प्रोग्रेस बार अपडेट
+        const progress = ((currentIndex) / selectedQuestions.length) * 100;
+        document.getElementById('progress-fill').style.width = progress + "%";
+        
+        document.getElementById('q-count').innerText = `सवाल ${currentIndex + 1} / ${selectedQuestions.length}`;
+        document.getElementById('question-text').innerText = q.question;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = "";
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(btn, opt, q.answer);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const allBtns = document.querySelectorAll('.option');
+        allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+            score++;
+        } else {
+            btn.classList.add('wrong');
+            allBtns.forEach(b => {
+                if(b.innerText === correct) b.classList.add('correct');
+            });
+        }
+
+        setTimeout(() => {
+            currentIndex++;
+            showQuestion();
+        }, 1200);
+    }
+
+    function showResult() {
+        document.getElementById('progress-fill').style.width = "100%";
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = `${score} / ${selectedQuestions.length}`;
+        
+        let msg = score >= 18 ? "आप तो टॉपर हैं! 🏆" : 
+                  score >= 12 ? "बहुत बढ़िया! अच्छी मेहनत। ✨" : "थोड़ा और पढ़ें, आप कर सकते हैं! 💪";
+        document.getElementById('remarks').innerText = msg;
+    }
+
+    loadData();
+</script>
+
+</body>
+</html>

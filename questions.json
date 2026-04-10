@@ -465,5 +465,5 @@
     { "subject": "Sanskrit/IT", "question": "लकार' का संबंध किससे है?", "options": ["Nouns", "Tense/Time", "Prepositions", "Adjectives"], "answer": "Tense/Time" },
     { "subject": "Sanskrit/IT", "question": "'पितृ' शब्द का प्रथमा बहुवचन रूप?", "options": ["Pitarah", "Pitaram", "Pitrin", "Pitre"], "answer": "Pitarah" },
     { "subject": "Sanskrit/IT", "question": "E-commerce का अर्थ क्या है?", "options": ["Govt jobs", "Buying/Selling online", "Social Media", "Video Gaming"], "answer": "Buying/Selling online" },
-    { "subject": "Sanskrit/IT", "question": "संस्कृत में 'उपधा' संज्ञा करने वाला सूत्र?", "options": ["Tulyasya", "Halo-anantara", "Alon-antyat-purva", "None"], "answer": "Alon-antyat-purva" },
+    { "subject": "Sanskrit/IT", "question": "संस्कृत में 'उपधा' संज्ञा करने वाला सूत्र?", "options": ["Tulyasya", "Halo-anantara", "Alon-antyat-purva", "None"], "answer": "Alon-antyat-purva" }
 ]

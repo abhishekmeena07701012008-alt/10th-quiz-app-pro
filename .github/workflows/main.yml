@@ -31,14 +31,18 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      - name: Initialize Capacitor
+        run: |
+          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
+          npx cap add android
+
       - name: Create New Keystore
         run: |
+          # यहाँ हम पहले android फोल्डर के अंदर जाते हैं
           keytool -genkey -v -keystore android/release.keystore -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEYSTORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname "CN=Abhishek, OU=Dev, O=QuizPro, L=Jaipur, S=Rajasthan, C=IN"
 
       - name: Build & Sign APK
         run: |
-          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
-          npx cap add android
           npx cap copy android
           cd android
           chmod +x gradlew

@@ -34,20 +34,29 @@ jobs:
           npx cap add android
           npx cap copy android
 
-      - name: Generate Keystore
+      - name: Create Keystore
+        # यहाँ हमने पाइप (|) का इस्तेमाल किया है ताकि कमांड बिना टूटे चले
         run: |
-          # यह कमांड अब बिना रुके चाबी बना देगी
-          keytool -genkeypair -v -keystore android/app/release.keystore -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEYSTORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
+          keytool -genkeypair -v \
+            -keystore android/app/release.keystore \
+            -alias "${{ secrets.KEY_ALIAS }}" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -dname "CN=Abhishek, O=QuizPro, C=IN" \
+            -noprompt
 
-      - name: Build APK
+      - name: Build & Sign APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=release.keystore \
-            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
-            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
-            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

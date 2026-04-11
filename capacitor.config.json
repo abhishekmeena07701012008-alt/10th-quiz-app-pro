@@ -1,0 +1,6 @@
+{
+  "appId": "com.abhishek.quizpro",
+  "appName": "10th Quiz Pro",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}

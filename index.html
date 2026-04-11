@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --text: #1e293b; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; }
+        
+        /* 1. बड़े फॉर्मेट वाली लैंग्वेज स्क्रीन */
+        #language-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 9999;
+        }
+        .lang-card {
+            background: #f1f5f9; padding: 40px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+        }
+        .lang-btn {
+            display: block; width: 250px; padding: 15px; margin: 15px 0;
+            border: none; border-radius: 12px; font-size: 1.2rem;
+            cursor: pointer; transition: 0.3s; font-weight: bold;
+        }
+        .btn-hi { background: #ff9933; color: white; }
+        .btn-en { background: #128807; color: white; }
+
+        /* 2. मुख्य क्विज स्क्रीन */
+        #quiz-app { display: none; padding: 20px; }
+        .quiz-container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .change-lang-btn { background: #e2e8f0; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem; }
+        
+        .option-btn { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #e2e8f0; border-radius: 10px; background: white; text-align: left; cursor: pointer; font-size: 1rem; }
+        .option-btn:hover { border-color: var(--primary); }
+        .correct { background: #dcfce7 !important; border-color: #22c55e !important; }
+        .wrong { background: #fee2e2 !important; border-color: #ef4444 !important; }
+        .rationale { margin-top: 15px; padding: 15px; background: #f1f5f9; border-radius: 8px; display: none; }
+    </style>
+</head>
+<body>
+
+<div id="language-screen">
+    <div class="lang-card">
+        <h1>10th Quiz Pro</h1>
+        <p>अपनी भाषा चुनें / Choose Language</p>
+        <button class="lang-btn btn-hi" onclick="selectLang('hi')">Hindi (हिंदी)</button>
+        <button class="lang-btn btn-en" onclick="selectLang('en')">English</button>
+    </div>
+</div>
+
+<div id="quiz-app">
+    <div class="quiz-container">
+        <div class="header">
+            <span id="subject-title">Science (विज्ञान)</span>
+            <button class="change-lang-btn" onclick="resetLang()">Change Language</button>
+        </div>
+
+        <div class="question-section">
+            <h3 id="question-text"></h3>
+            <div id="options-container"></div>
+            <div id="explanation-box" class="rationale"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let selectedLang = '';
+
+    // नमूना डेटा - आपकी JSON फाइल इसी तरह की होनी चाहिए
+    const quizData = [
+        {
+            q: { hi: "प्रकाश के परावर्तन के अनुसार, आपतन कोण किसके बराबर है?", en: "According to reflection laws, angle of incidence is equal to?" },
+            options: [
+                { hi: "परावर्तन कोण", en: "Angle of reflection", isCorrect: true },
+                { hi: "अपवर्तन कोण", en: "Angle of refraction", isCorrect: false }
+            ],
+            info: { hi: "आपतन कोण हमेशा परावर्तन कोण के बराबर होता है।", en: "Angle of incidence is always equal to the angle of reflection." }
+        }
+    ];
+
+    // 1. भाषा चुनने पर ऐप लोड करें
+    function selectLang(lang) {
+        selectedLang = lang;
+        localStorage.setItem('user_language_pref', lang); // फोन की मेमोरी में सेव किया
+        showApp();
+    }
+
+    // 2. ऐप की स्क्रीन दिखाना
+    function showApp() {
+        document.getElementById('language-screen').style.display = 'none';
+        document.getElementById('quiz-app').style.display = 'block';
+        loadContent(0);
+    }
+
+    // 3. डेटा लोड करना
+    function loadContent(idx) {
+        const item = quizData[idx];
+        document.getElementById('question-text').innerText = item.q[selectedLang];
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        item.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt[selectedLang];
+            btn.onclick = () => {
+                if(opt.isCorrect) btn.classList.add('correct');
+                else btn.classList.add('wrong');
+                
+                const ex = document.getElementById('explanation-box');
+                ex.innerText = item.info[selectedLang];
+                ex.style.display = 'block';
+                document.querySelectorAll('.option-btn').forEach(b => b.style.pointerEvents = 'none');
+            };
+            container.appendChild(btn);
+        });
+    }
+
+    // 4. भाषा दोबारा बदलने के लिए (अगर यूजर चाहे)
+    function resetLang() {
+        localStorage.removeItem('user_language_pref');
+        location.reload();
+    }
+
+    // 5. पेज लोड होते ही चेक करें कि क्या भाषा पहले से चुनी हुई है
+    window.onload = () => {
+        const savedLang = localStorage.getItem('user_language_pref');
+        if(savedLang) {
+            selectedLang = savedLang;
+            showApp();
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -4,6 +4,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# यहाँ हमने गिटहब को परमिशन खुद दे दी है
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest

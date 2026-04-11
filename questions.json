@@ -1,0 +1,24 @@
+[
+  {
+    "subject": "science",
+    "q": {
+      "hi": "प्रकाश का वेग कितना होता है?",
+      "en": "What is the speed of light?"
+    },
+    "options": [
+      { "hi": "3 लाख km/s", "en": "300,000 km/s", "isCorrect": true },
+      { "hi": "1 लाख km/s", "en": "100,000 km/s", "isCorrect": false }
+    ]
+  },
+  {
+    "subject": "maths",
+    "q": {
+      "hi": "2+2 क्या है?",
+      "en": "What is 2+2?"
+    },
+    "options": [
+      { "hi": "4", "en": "4", "isCorrect": true },
+      { "hi": "5", "en": "5", "isCorrect": false }
+    ]
+  }
+]

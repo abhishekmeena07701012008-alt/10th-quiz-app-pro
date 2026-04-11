@@ -190,3 +190,70 @@
 </script>
 </body>
 </html>
+<script>
+    let questions = [];
+    let currentQuestionIndex = 0;
+
+    // JSON फाइल लोड करने का फंक्शन
+    async function loadQuizData() {
+        try {
+            const response = await fetch('questions.json');
+            if (!response.ok) {
+                throw new Error('questions.json not found!');
+            }
+            questions = await response.json();
+            
+            // सवालों को मिक्स करना ताकि रिपीट न हों और हर बार नया क्रम मिले
+            questions.sort(() => Math.random() - 0.5);
+            
+            showQuestion();
+        } catch (error) {
+            console.error('Error loading JSON:', error);
+            document.getElementById('question').innerText = "सवाल लोड करने में समस्या आ रही है!";
+        }
+    }
+
+    // सवाल स्क्रीन पर दिखाने का फंक्शन
+    function showQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+            document.getElementById('question-container').innerHTML = "<h2>क्विज़ पूरी हुई! आपने सभी सवाल देख लिए हैं।</h2>";
+            return;
+        }
+
+        const q = questions[currentQuestionIndex];
+        const qElement = document.getElementById('question');
+        const oContainer = document.getElementById('options');
+
+        // हिंदी और इंग्लिश दोनों भाषा में सवाल दिखाना
+        qElement.innerHTML = `
+            <div style="font-size: 0.8em; color: #ffcc00; margin-bottom: 5px;">Subject: ${q.subject}</div>
+            <div style="margin-bottom: 10px;">${q.question_hi}</div>
+            <div style="font-size: 0.85em; color: #bbb; font-style: italic;">${q.question_en}</div>
+        `;
+
+        oContainer.innerHTML = ''; // पुराने ऑप्शंस हटाना
+
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.className = 'btn'; // आपकी CSS क्लास का नाम यहाँ रखें
+            btn.onclick = () => checkAnswer(opt, q.answer);
+            oContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selected, correct) {
+        if (selected === correct) {
+            alert("सही जवाब! (Correct)");
+        } else {
+            alert("गलत जवाब! सही उत्तर है: " + correct);
+        }
+        
+        // अगले सवाल पर जाना
+        currentQuestionIndex++;
+        showQuestion();
+    }
+
+    // ऐप शुरू होते ही डेटा लोड करें
+    loadQuizData();
+</script>

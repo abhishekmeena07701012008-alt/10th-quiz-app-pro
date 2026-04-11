@@ -54,5 +54,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Quiz-Pro-App
-          # यहाँ मैंने रास्ता बदल दिया है ताकि फाइल मिल जाए
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: android/app/build/outputs/apk/release/*.apk

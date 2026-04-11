@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Signed Android APK
 on:
   push:
     branches: [ main ]
@@ -21,7 +21,7 @@ jobs:
           mkdir www
           cp index.html www/
           cp questions.json www/
-          # अगर आपकी कोई CSS या JS फाइल अलग से है, तो उन्हें भी यहाँ cp कमांड से जोड़ सकते हैं
+          # अगर आपकी कोई और फाइल (जैसे CSS या Images) है, तो उन्हें भी यहाँ cp कमांड से जोड़ें
 
       - name: Install Dependencies
         run: npm install
@@ -32,17 +32,27 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Initialize Capacitor and Build
+      - name: Build Android Project
         run: |
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
           npx cap copy android
+
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > android/release.keystore
+
+      - name: Build & Sign APK
+        run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=release.keystore \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload APK Artifact
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-APK
+          name: 10th-Quiz-Pro-Signed-APK
           path: android/app/build/outputs/apk/release/*.apk

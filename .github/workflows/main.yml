@@ -25,22 +25,23 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Initialize Android Project
+      - name: Build Android Project
         run: |
           mkdir -p www
           cp index.html www/ || true
           cp questions.json www/ || true
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
-
-      - name: Create New Keystore
-        run: |
-          # अब यह कमांड सीधे सही फोल्डर के अंदर चाबी बनाएगी
-          keytool -genkey -v -keystore android/app/release.keystore -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEYSTORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname "CN=Abhishek, OU=Dev, O=QuizPro, L=Jaipur, S=Rajasthan, C=IN"
-
-      - name: Build & Sign APK
-        run: |
           npx cap copy android
+
+      - name: Create Keystore Automatically
+        run: |
+          # यह कमांड अब बिना रुके (-noprompt के साथ) चाबी बना देगी
+          cd android
+          keytool -genkeypair -v -keystore release.keystore -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEYSTORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
+
+      - name: Build APK
+        run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease \
@@ -49,8 +50,8 @@ jobs:
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
             -Pandroid.injected.signing.key.password=${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload Signed APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Signed-APK
+          name: 10th-Quiz-Pro-Final
           path: android/app/build/outputs/apk/release/*.apk

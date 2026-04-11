@@ -67,10 +67,10 @@
       { "hi": "चतुर्थी", "en": "Chaturthi", "isCorrect": true },
       { "hi": "तृतीया", "en": "Tritiya", "isCorrect": false },
       { "hi": "पंचमी", "en": "Panchami", "isCorrect": false },
-      { "hi": "षष्ठी", "en": "Shashthi", "isCorrect": false }
+      { "hi": "षष्ठी", "en": "Shashthi", "isCorrect": false },
     
-  }
-]
+  },
+
 [
   /* --- SCIENCE (20 HARD QUESTIONS) --- */
   {
@@ -80,8 +80,8 @@
       { "hi": "7", "en": "7", "isCorrect": true },
       { "hi": "0", "en": "0", "isCorrect": false },
       { "hi": "1", "en": "1", "isCorrect": false },
-      { "hi": "14", "en": "14", "isCorrect": false }
-    ]
+      { "hi": "14", "en": "14", "isCorrect": false },
+    
   },
   {
     "subject": "science",
@@ -90,8 +90,8 @@
       { "hi": "मटर (Pisum sativum)", "en": "Pea (Pisum sativum)", "isCorrect": true },
       { "hi": "गुलाब", "en": "Rose", "isCorrect": false },
       { "hi": "सरसों", "en": "Mustard", "isCorrect": false },
-      { "hi": "गेहूँ", "en": "Wheat", "isCorrect": false }
-    ]
+      { "hi": "गेहूँ", "en": "Wheat", "isCorrect": false },
+    
   },
   {
     "subject": "science",
@@ -100,8 +100,8 @@
       { "hi": "अवतल लेंस", "en": "Concave lens", "isCorrect": true },
       { "hi": "उत्तल लेंस", "en": "Convex lens", "isCorrect": false },
       { "hi": "बेलनाकार लेंस", "en": "Cylindrical lens", "isCorrect": false },
-      { "hi": "द्वि-फोकसी लेंस", "en": "Bifocal lens", "isCorrect": false }
-    ]
+      { "hi": "द्वि-फोकसी लेंस", "en": "Bifocal lens", "isCorrect": false },
+    
   },
   {
     "subject": "science",
@@ -110,8 +110,8 @@
       { "hi": "वाट (W)", "en": "Watt (W)", "isCorrect": true },
       { "hi": "ओह्म (Ω)", "en": "Ohm (Ω)", "isCorrect": false },
       { "hi": "वोल्ट (V)", "en": "Volt (V)", "isCorrect": false },
-      { "hi": "एम्पीयर (A)", "en": "Ampere (A)", "isCorrect": false }
-    ]
+      { "hi": "एम्पीयर (A)", "en": "Ampere (A)", "isCorrect": false },
+    
   },
   {
     "subject": "science",
@@ -120,8 +120,8 @@
       { "hi": "परमाणु संख्या", "en": "Atomic number", "isCorrect": true },
       { "hi": "परमाणु द्रव्यमान", "en": "Atomic mass", "isCorrect": false },
       { "hi": "घनत्व", "en": "Density", "isCorrect": false },
-      { "hi": "संयोजकता", "en": "Valency", "isCorrect": false }
-    ]
+      { "hi": "संयोजकता", "en": "Valency", "isCorrect": false },
+    
   },
 
   /* --- MATHS (20 HARD QUESTIONS) --- */
@@ -132,8 +132,8 @@
       { "hi": "90°", "en": "90°", "isCorrect": true },
       { "hi": "45°", "en": "45°", "isCorrect": false },
       { "hi": "0°", "en": "0°", "isCorrect": false },
-      { "hi": "180°", "en": "180°", "isCorrect": false }
-    ]
+      { "hi": "180°", "en": "180°", "isCorrect": false },
+    
   },
   {
     "subject": "maths",
@@ -142,8 +142,8 @@
       { "hi": "90°", "en": "90°", "isCorrect": true },
       { "hi": "180°", "en": "180°", "isCorrect": false },
       { "hi": "60°", "en": "60°", "isCorrect": false },
-      { "hi": "360°", "en": "360°", "isCorrect": false }
-    ]
+      { "hi": "360°", "en": "360°", "isCorrect": false },
+    
   },
   {
     "subject": "maths",
@@ -152,8 +152,8 @@
       { "hi": "47", "en": "47", "isCorrect": true },
       { "hi": "45", "en": "45", "isCorrect": false },
       { "hi": "50", "en": "50", "isCorrect": false },
-      { "hi": "52", "en": "52", "isCorrect": false }
-    ]
+      { "hi": "52", "en": "52", "isCorrect": false },
+    
   },
   {
     "subject": "maths",
@@ -162,8 +162,8 @@
       { "hi": "1", "en": "1", "isCorrect": true },
       { "hi": "0", "en": "0", "isCorrect": false },
       { "hi": "0.5", "en": "0.5", "isCorrect": false },
-      { "hi": "-1", "en": "-1", "isCorrect": false }
-    ]
+      { "hi": "-1", "en": "-1", "isCorrect": false },
+    
   },
   {
     "subject": "maths",
@@ -174,5 +174,5 @@
       { "hi": "2πrh", "en": "2πrh", "isCorrect": false },
       { "hi": "4/3 πr³", "en": "4/3 πr³", "isCorrect": false }
     ]
-  }
-]
+  
+

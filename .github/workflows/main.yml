@@ -37,11 +37,10 @@ jobs:
       - name: Create Keystore
         run: |
           cd android/app
-          # यहाँ हम पुरानी फाइल को डिलीट कर रहे हैं ताकि नया एरर न आए
           rm -f release.keystore
           keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
-      - name: Build & Sign APK
+      - name: Build APK with Gradle
         run: |
           cd android
           chmod +x gradlew
@@ -54,5 +53,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Final-APK
-          path: android/app/build/outputs/apk/release/*.apk
+          name: Quiz-Pro-App
+          # यहाँ मैंने रास्ता बदल दिया है ताकि फाइल मिल जाए
+          path: android/app/build/outputs/apk/release/app-release.apk

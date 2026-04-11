@@ -1,12 +1,15 @@
 {
   "name": "10th-quiz-app-pro",
   "version": "1.0.0",
+  "description": "Educational Quiz App",
   "main": "index.html",
-  "dependencies": {
-    "@capacitor/core": "^5.0.0",
-    "@capacitor/android": "^5.0.0"
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "devDependencies": {
-    "@capacitor/cli": "^5.0.0"
+  "dependencies": {
+    "@capacitor/android": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/core": "^5.0.0"
   }
 }
+

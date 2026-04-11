@@ -37,8 +37,8 @@ jobs:
       - name: Create Keystore
         run: |
           cd android/app
-          # यहाँ हमने आपका सही पासवर्ड बिना स्पेस के डाल दिया है
-          keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass Abhishekmeena2008 -keypass Abhishekmeena2008 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
+          # यहाँ हमने आपका नया नंबर वाला पासवर्ड डाल दिया है
+          keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 9057010336 -keypass 9057010336 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
       - name: Build & Sign APK
         run: |
@@ -46,12 +46,12 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=release.keystore \
-            -Pandroid.injected.signing.store.password=Abhishekmeena2008 \
+            -Pandroid.injected.signing.store.password=9057010336 \
             -Pandroid.injected.signing.key.alias=quizpro \
-            -Pandroid.injected.signing.key.password=Abhishekmeena2008
+            -Pandroid.injected.signing.key.password=9057010336
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Final
+          name: 10th-Quiz-Pro-Final-APK
           path: android/app/build/outputs/apk/release/*.apk

@@ -35,18 +35,10 @@ jobs:
           npx cap copy android
 
       - name: Create Keystore
-        # यहाँ हमने पाइप (|) का इस्तेमाल किया है ताकि कमांड बिना टूटे चले
+        # यहाँ हम सीधे पासवर्ड डाल रहे हैं, कोई सीक्रेट नहीं
         run: |
-          keytool -genkeypair -v \
-            -keystore android/app/release.keystore \
-            -alias "${{ secrets.KEY_ALIAS }}" \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ secrets.KEY_PASSWORD }}" \
-            -dname "CN=Abhishek, O=QuizPro, C=IN" \
-            -noprompt
+          cd android/app
+          keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass abhishekMeena2008 -keypass abhishekMeena2008 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
       - name: Build & Sign APK
         run: |
@@ -54,9 +46,9 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file=release.keystore \
-            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
-            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
-            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
+            -Pandroid.injected.signing.store.password=abhishekMeena2008 \
+            -Pandroid.injected.signing.key.alias=quizpro \
+            -Pandroid.injected.signing.key.password=abhishekMeena2008
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

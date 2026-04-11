@@ -1,26 +1,41 @@
 name: Build Android APK
-on: [push]
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: npm install
-      - run: npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir .
-      - run: npx cap add android
-      - run: npx cap copy android
-      - uses: actions/setup-java@v3
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '17'
-      - run: |
+
+      - name: Initialize Capacitor and Build
+        run: |
+          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir .
+          npx cap add android
+          npx cap copy android
           cd android
+          chmod +x gradlew
           ./gradlew assembleRelease
-      - uses: actions/upload-artifact@v3
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: QuizApp-Release
+          name: 10th-Quiz-Pro-APK
           path: android/app/build/outputs/apk/release/*.apk

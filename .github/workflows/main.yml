@@ -34,12 +34,10 @@ jobs:
           npx cap add android
           npx cap copy android
 
-      - name: Generate Keystore Script
-        # यहाँ हमने पूरी कमांड को एक सुरक्षित फाइल में डाल दिया है
+      - name: Generate Keystore
         run: |
-          echo "keytool -genkeypair -v -keystore android/app/release.keystore -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEYSTORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname 'CN=Abhishek, O=QuizPro, C=IN' -noprompt" > gen_key.sh
-          chmod +x gen_key.sh
-          ./gen_key.sh
+          # यह कमांड अब बिना रुके चाबी बना देगी
+          keytool -genkeypair -v -keystore android/app/release.keystore -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEYSTORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
       - name: Build APK
         run: |

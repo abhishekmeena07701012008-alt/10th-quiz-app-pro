@@ -16,6 +16,13 @@ jobs:
         with:
           node-version: 20
 
+      - name: Prepare Web Files
+        run: |
+          mkdir www
+          cp index.html www/
+          cp questions.json www/
+          # अगर आपकी कोई CSS या JS फाइल अलग से है, तो उन्हें भी यहाँ cp कमांड से जोड़ सकते हैं
+
       - name: Install Dependencies
         run: npm install
 
@@ -27,7 +34,7 @@ jobs:
 
       - name: Initialize Capacitor and Build
         run: |
-          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir .
+          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
           npx cap copy android
           cd android

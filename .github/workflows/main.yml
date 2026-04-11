@@ -37,7 +37,8 @@ jobs:
       - name: Create Keystore
         run: |
           cd android/app
-          # पासवर्ड 905701 यहाँ सेट कर दिया है
+          # यहाँ हम पुरानी फाइल को डिलीट कर रहे हैं ताकि नया एरर न आए
+          rm -f release.keystore
           keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
       - name: Build & Sign APK

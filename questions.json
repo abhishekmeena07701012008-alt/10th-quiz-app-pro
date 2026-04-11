@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "subject": "Science",
+    "question_hi": "मानव शरीर में सबसे बड़ी ग्रंथि कौन सी है?",
+    "question_en": "Which is the largest gland in the human body?",
+    "options": ["थायरॉयड (Thyroid)", "यकृत (Liver)", "पैनक्रियाज (Pancreas)", "पीयूष (Pituitary)"],
+    "answer": "यकृत (Liver)"
+  },
+  {
+    "id": 2,
+    "subject": "Mathematics",
+    "question_hi": "सबसे छोटी अभाज्य संख्या (Prime Number) कौन सी है?",
+    "question_en": "Which is the smallest prime number?",
+    "options": ["0", "1", "2", "3"],
+    "answer": "2"
+  },
+  {
+    "id": 3,
+    "subject": "Social Science",
+    "question_hi": "भारतीय राष्ट्रीय कांग्रेस की स्थापना कब हुई थी?",
+    "question_en": "When was the Indian National Congress founded?",
+    "options": ["1885", "1905", "1915", "1920"],
+    "answer": "1885"
+  },
+  {
+    "id": 4,
+    "subject": "English",
+    "question_hi": "'Beautiful' का विलोम (Antonym) क्या है?",
+    "question_en": "What is the antonym of 'Beautiful'?",
+    "options": ["Pretty", "Ugly", "Bright", "Smart"],
+    "answer": "Ugly"
+  },
+  {
+    "id": 5,
+    "subject": "Hindi",
+    "question_hi": "'लंबोदर' में कौन सा समास है?",
+    "question_en": "Which compound (Samas) is in 'Lambodar'?",
+    "options": ["तत्पुरुष", "द्विगु", "बहुव्रीहि", "द्वंद्व"],
+    "answer": "बहुव्रीहि"
+  }
+]

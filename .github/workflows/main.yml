@@ -17,38 +17,31 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Prepare Keystore
-        run: |
-          echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > release.keystore
-
-      - name: Prepare Web Assets
-        run: |
-          # यह स्टेप एरर दूर करेगा: फाइलें एक फोल्डर में डालना ज़रूरी है
-          mkdir -p www
-          cp index.html www/
-          cp questions.json www/
-
       - name: Install Dependencies
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
+          mkdir -p www && cp index.html www/ && cp questions.json www/
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
-          npx cap sync android
 
-      - name: Build and Sign APK
+      - name: Prepare Keystore File
+        run: |
+          # Keystore को सही जगह पर रखना
+          echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > android/app/release.keystore
+
+      - name: Build Signed APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease
-          # आपका पासवर्ड 905701 यहाँ इस्तेमाल होगा
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore ../release.keystore \
-            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            app/build/outputs/apk/release/app-release-unsigned.apk upload
+          # इस कमांड से एंड्रॉइड अपने आप आपकी फाइल इस्तेमाल करेगा
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=release.keystore \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias=upload \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEYSTORE_PASSWORD }}"
 
       - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Signed
+          name: 10th-Quiz-Pro-Final
           path: android/app/build/outputs/apk/release/*.apk

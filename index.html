@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Final Edition</title>
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3294666124278706" crossorigin="anonymous"></script>
+
+    <style>
+        :root { --primary: #2563eb; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #fbbf24; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; padding-bottom: 50px; /* विज्ञापन के लिए जगह */ }
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 100; transition: 0.5s; }
+        .hidden { display: none !important; opacity: 0; visibility: hidden; }
+        
+        #timer-container { position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: #334155; }
+        #timer-bar { height: 100%; background: var(--accent); width: 100%; transition: linear 1s; box-shadow: 0 0 10px var(--accent); }
+        
+        .card { background: var(--card); padding: 30px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-align: center; width: 92%; max-width: 480px; border: 1px solid #334155; }
+        
+        .btn { display: block; width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 14px; font-size: 1.1rem; cursor: pointer; font-weight: bold; transition: 0.3s; color: white; transform: scale(1); }
+        .btn:active { transform: scale(0.98); }
+        .btn-lang { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .btn-sub { background: #2563eb; text-align: left; padding-left: 20px; font-size: 1.05rem; border-left: 5px solid transparent; }
+        .btn-sub:hover { border-left: 5px solid var(--accent); background: #1d4ed8; }
+        
+        .option-btn { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #334155; border-radius: 14px; background: #1e293b; color: white; text-align: left; cursor: pointer; font-size: 1rem; transition: 0.2s; }
+        .option-btn:hover { border-color: #64748b; background: #2d3e5a; }
+        
+        .correct { background: #059669 !important; border-color: #10b981 !important; animation: pulse 0.5s; }
+        .wrong { background: #dc2626 !important; border-color: #ef4444 !important; }
+        
+        .score-val { font-size: 5.5rem; color: var(--accent); font-weight: 800; text-shadow: 0 0 30px rgba(251, 191, 36, 0.4); margin: 5px 0; }
+        .feedback-text { margin: 20px 0; font-size: 1.2rem; line-height: 1.6; font-weight: 500; color: #cbd5e1; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+        
+        #sub-list { max-height: 450px; overflow-y: auto; padding-right: 5px; }
+        #sub-list::-webkit-scrollbar { width: 5px; }
+        #sub-list::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+
+        /* AdMob Banner Styling */
+        #ad-container { position: fixed; bottom: 0; width: 100%; background: #0f172a; text-align: center; z-index: 1000; height: 50px; }
+    </style>
+</head>
+<body>
+
+    <div id="lang-screen" class="screen">
+        <div class="card">
+            <h1 style="color:var(--accent); margin-bottom: 5px;">10th Quiz Pro</h1>
+            <p style="opacity: 0.8;">Ultimate Board Exam Prep</p>
+            <hr style="border: 0.5px solid #334155; margin: 20px 0;">
+            <button class="btn btn-lang" onclick="initApp('hi')">Hindi (हिंदी माध्यम)</button>
+            <button class="btn btn-lang" style="background:linear-gradient(135deg, #059669, #047857)" onclick="initApp('en')">English Medium</button>
+        </div>
+    </div>
+
+    <div id="sub-screen" class="screen hidden">
+        <div class="card">
+            <h2 id="sub-title" style="margin-bottom: 20px;"></h2>
+            <div id="sub-list">
+                <button class="btn btn-sub" onclick="startQuiz('Science')">🧪 Science / विज्ञान</button>
+                <button class="btn btn-sub" onclick="startQuiz('Mathematics')">📐 Maths / गणित</button>
+                <button class="btn btn-sub" onclick="startQuiz('Social Science')">🌍 SST / सा. विज्ञान</button>
+                <button class="btn btn-sub" onclick="startQuiz('Hindi')">📖 Hindi / हिंदी</button>
+                <button class="btn btn-sub" onclick="startQuiz('English')">🔤 English / अंग्रेजी</button>
+                <button class="btn btn-sub" onclick="startQuiz('Sanskrit')">🕉️ Sanskrit / संस्कृत</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="screen hidden" style="justify-content: flex-start; padding-top: 50px;">
+        <div id="timer-container"><div id="timer-bar"></div></div>
+        <div class="card">
+            <div style="display:flex; justify-content: space-between; font-size: 0.9rem; margin-bottom:15px; font-weight: bold; color:var(--accent)">
+                <span id="active-sub"></span>
+                <span id="q-count"></span>
+            </div>
+            <h3 id="q-text" style="min-height: 70px; text-align: left; line-height: 1.4;"></h3>
+            <div id="opt-container"></div>
+        </div>
+    </div>
+
+    <div id="report-screen" class="screen hidden">
+        <div class="card">
+            <h2 id="res-title" style="color: #94a3b8; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px;"></h2>
+            <div class="score-val" id="final-score">0%</div>
+            <p id="perf-msg" class="feedback-text"></p>
+            <button class="btn btn-lang" onclick="location.reload()" id="retry-btn"></button>
+        </div>
+    </div>
+
+    <div id="ad-container">
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:320px;height:50px"
+             data-ad-client="ca-app-pub-3294666124278706"
+             data-ad-slot="2113872107"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+<script>
+    let lang = '', subject = '', quizSet = [], currentIndex = 0, score = 0, timer, timeLeft = 10;
+
+    const uiText = {
+        hi: { subTitle: "विषय का चयन करें", retry: "दोबारा प्रयास करें", res: "आपका स्कोरबोर्ड" },
+        en: { subTitle: "Select Your Subject", retry: "Try Again", res: "Your Scoreboard" }
+    };
+
+    function initApp(l) {
+        lang = l;
+        document.getElementById('lang-screen').classList.add('hidden');
+        document.getElementById('sub-screen').classList.remove('hidden');
+        document.getElementById('sub-title').innerText = uiText[lang].subTitle;
+    }
+
+    async function startQuiz(sub) {
+        subject = sub;
+        document.getElementById('sub-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        
+        try {
+            const res = await fetch('questions.json');
+            const data = await res.json();
+            let allSubQuestions = data.filter(q => q.subject === sub);
+            quizSet = allSubQuestions.sort(() => Math.random() - 0.5).slice(0, 20);
+            if(quizSet.length === 0) { alert("सवालो की फाइल नहीं मिली!"); location.reload(); return; }
+            loadQuestion();
+        } catch (e) { alert("questions.json फाइल लोड करने में समस्या!"); }
+    }
+
+    function loadQuestion() {
+        if (currentIndex >= quizSet.length) { showReport(); return; }
+        clearInterval(timer);
+        timeLeft = 10;
+        const bar = document.getElementById('timer-bar');
+        bar.style.transition = 'none'; bar.style.width = '100%';
+        setTimeout(() => { bar.style.transition = 'linear 1s'; }, 20);
+        const q = quizSet[currentIndex];
+        document.getElementById('active-sub').innerText = subject.toUpperCase();
+        document.getElementById('q-count').innerText = `Q. ${currentIndex + 1} / ${quizSet.length}`;
+        document.getElementById('q-text').innerText = (lang === 'hi') ? q.question_hi : q.question_en;
+        const container = document.getElementById('opt-container');
+        container.innerHTML = '';
+        [...q.options].forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn'; btn.innerText = opt; 
+            btn.onclick = () => handleAnswer(btn, opt, q.answer);
+            container.appendChild(btn);
+        });
+        timer = setInterval(() => {
+            timeLeft--;
+            bar.style.width = (timeLeft * 10) + "%";
+            if (timeLeft <= 0) { handleAnswer(null, null, q.answer); }
+        }, 1000);
+    }
+
+    function handleAnswer(btn, selected, correct) {
+        clearInterval(timer);
+        const container = document.getElementById('opt-container');
+        if (selected === correct) { if(btn) btn.classList.add('correct'); score++; }
+        else {
+            if(btn) btn.classList.add('wrong');
+            Array.from(container.children).forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
+            if (navigator.vibrate) navigator.vibrate(200);
+        }
+        Array.from(container.children).forEach(b => b.style.pointerEvents = 'none');
+        setTimeout(() => { currentIndex++; loadQuestion(); }, 1200);
+    }
+
+    function showReport() {
+        // यहाँ फुल स्क्रीन एड दिखाने का कोड (Trigger Interstitial)
+        console.log("Loading Full Screen Ad: ca-app-pub-3294666124278706/3782176991");
+        
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('report-screen').classList.remove('hidden');
+        
+        let percentage = Math.round((score / quizSet.length) * 100);
+        document.getElementById('final-score').innerText = `${percentage}%`;
+        document.getElementById('res-title').innerText = uiText[lang].res + ` (${score}/${quizSet.length})`;
+        document.getElementById('retry-btn').innerText = uiText[lang].retry;
+
+        let msg = ""; let color = "";
+        if (percentage === 100) { msg = (lang === 'hi') ? "🏆 अद्भुत! आप एक जीनियस हैं!" : "🏆 Incredible! You're a Genius!"; color = "#10b981"; }
+        else if (percentage >= 80) { msg = (lang === 'hi') ? "🌟 बेहतरीन प्रदर्शन!" : "🌟 Excellent Work!"; color = "#fbbf24"; }
+        else if (percentage >= 60) { msg = (lang === 'hi') ? "👍 अच्छा प्रयास!" : "👍 Good Job!"; color = "#3b82f6"; }
+        else { msg = (lang === 'hi') ? "📚 और अभ्यास करें!" : "📚 Keep Practicing!"; color = "#ef4444"; }
+
+        document.getElementById('perf-msg').innerText = msg;
+        document.getElementById('final-score').style.color = color;
+    }
+</script>
+</body>
+</html>

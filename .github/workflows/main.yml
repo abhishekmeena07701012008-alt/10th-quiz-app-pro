@@ -19,13 +19,19 @@ jobs:
 
       - name: Prepare Keystore
         run: |
-          # यह स्टेप आपके Secret से Keystore फाइल वापस बनाएगा
           echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > release.keystore
+
+      - name: Prepare Web Assets
+        run: |
+          # यह स्टेप एरर दूर करेगा: फाइलें एक फोल्डर में डालना ज़रूरी है
+          mkdir -p www
+          cp index.html www/
+          cp questions.json www/
 
       - name: Install Dependencies
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir .
+          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
           npx cap sync android
 
@@ -34,7 +40,7 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
-          # यहाँ आपका बताया हुआ पासवर्ड और Secret इस्तेमाल हो रहा है
+          # आपका पासवर्ड 905701 यहाँ इस्तेमाल होगा
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
             -keystore ../release.keystore \
             -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \

@@ -1,4 +1,4 @@
-name: Build Signed APK
+name: Build Android APK
 
 on:
   push:
@@ -11,20 +11,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          node-version: '18'
 
-      - name: Build with Gradle
-        run: chmod +x gradlew && ./gradlew assembleRelease
+      - name: Install Dependencies
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap android add || true
+
+      - name: Build Web Assets
+        run: |
+          mkdir -p www
+          cp index.html www/
+          cp questions.json www/ || true
+          cp app-ads.txt www/ || true
+
+      - name: Sync with Capacitor
+        run: npx cap sync android
+
+      - name: Build APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
 
       - name: Sign APK
         uses: r0adkll/sign-android-release@v1
         id: sign_app
         with:
-          releaseDirectory: app/build/outputs/apk/release
+          releaseDirectory: android/app/build/outputs/apk/release
           signingKeyBase64: ${{ secrets.KEYSTORE }}
           alias: key0
           keyStorePassword: ${{ secrets.RELEASE_PASSWORD }}

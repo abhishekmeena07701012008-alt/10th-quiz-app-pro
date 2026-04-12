@@ -41,15 +41,17 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Sign APK (With New Password)
+      - name: Sign APK (Smart Method)
         run: |
           echo "${{ secrets.KEYSTORE }}" | base64 -d > release.jks
-          # आपका सही पासवर्ड यहाँ इस्तेमाल हो रहा है
+          
+          # ऑटोमेटिकली असली Alias ढूँढना और साइन करना
+          ALIAS=$(keytool -list -v -keystore release.jks -storepass abhishekmeena2008 | grep 'Alias name' | cut -d' ' -f3)
+          echo "Found Alias: $ALIAS"
+          
           /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner sign \
             --ks release.jks \
-            --ks-key-alias key0 \
             --ks-pass pass:abhishekmeena2008 \
-            --key-pass pass:abhishekmeena2008 \
             --out 10th-Quiz-Pro-Signed.apk \
             android/app/build/outputs/apk/release/app-release-unsigned.apk
 

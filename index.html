@@ -191,7 +191,34 @@
 </script>
 </body>
 </html>
-<script>
+<script src="cordova.js"></script> <script>
+    // --- आपकी AdMob डिटेल्स यहाँ सेट हैं ---
+    const AD_PUBLISHER_ID = "ca-app-pub-3294666124278706";
+    const BANNER_ID = "ca-app-pub-3294666124278706/2113872107";
+    const INTERSTITIAL_ID = "ca-app-pub-3294666124278706/3782176991";
+
+    // AdMob SDK को शुरू करना
+    document.addEventListener('deviceready', function() {
+        if (window.admob) {
+            // 1. बैनर एड दिखाओ (नीचे की तरफ)
+            admob.banner.config({
+                id: BANNER_ID,
+                isTesting: false,
+                autoShow: true
+            });
+            admob.banner.prepare();
+
+            // 2. फुल स्क्रीन एड (Interstitial) लोड करके रखो
+            admob.interstitial.config({
+                id: INTERSTITIAL_ID,
+                isTesting: false,
+                autoShow: false
+            });
+            admob.interstitial.prepare();
+        }
+    }, false);
+
+    // इंटरनेट चेक करने वाला फंक्शन
     function checkConnectivity() {
         if (!navigator.onLine) {
             document.body.innerHTML = `
@@ -211,7 +238,16 @@
     window.addEventListener('load', checkConnectivity);
     window.addEventListener('offline', checkConnectivity);
     window.addEventListener('online', () => location.reload());
+
+    // जब क्विज़ खत्म हो, तो इस फंक्शन को कॉल करें फुल स्क्रीन एड दिखाने के लिए
+    function triggerFullAd() {
+        if (window.admob) {
+            admob.interstitial.show();
+            admob.interstitial.prepare(); // अगले एड की तैयारी
+        }
+    }
 </script>
 
 </body>
 </html>
+

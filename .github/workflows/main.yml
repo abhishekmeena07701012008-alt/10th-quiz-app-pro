@@ -15,36 +15,32 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '11' # हमने यहाँ Java का पुराना वर्शन कर दिया ताकि Keystore एरर न दे
+          java-version: '17'
 
-      - name: Install Dependencies
+      - name: Install Capacitor and Build
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
           mkdir -p www && cp index.html www/ && cp questions.json www/
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
           npx cap sync android
+          cd android && chmod +x gradlew && ./gradlew assembleRelease
 
-      - name: Build Unsigned APK
+      - name: Sign APK with Uber Signer
         run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease
-
-      - name: Sign APK
-        run: |
-          # Keystore को वापस फाइल में बदलना
+          # Keystore को फाइल में बदलना
           echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > release.keystore
           
-          # APK को साइन करना (पासवर्ड 905701 और Alias 'upload')
-          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-            -keystore release.keystore \
-            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            -keypass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk upload
+          # Uber APK Signer टूल का इस्तेमाल (यह सबसे आसान तरीका है)
+          wget https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
+          java -jar uber-apk-signer-1.3.0.jar --apks android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            --ks release.keystore \
+            --ksAlias upload \
+            --ksPass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            --ksKeyPass "${{ secrets.KEYSTORE_PASSWORD }}"
 
       - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
           name: 10th-Quiz-Pro-Signed
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/*-aligned-signed.apk

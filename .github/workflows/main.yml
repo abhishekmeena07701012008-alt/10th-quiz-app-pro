@@ -25,9 +25,9 @@ jobs:
       - name: Force Build Assets
         run: |
           mkdir -p www
-          # फाइलों को पूरे प्रोजेक्ट में कहीं भी हो, ढूंढकर www में डालो
-          find . -name "index.html" -exec cp {} www/ \; || echo "<html><body>Quiz</body></html>" > www/index.html
-          find . -name "questions.json" -exec cp {} www/ \; || echo "[]" > www/questions.json
+          # यहाँ मैंने आपके फाइल के नाम (Index.html और Questions.json) के हिसाब से बदलाव कर दिया है
+          cp Index.html www/index.html || cp index.html www/index.html || echo "no file"
+          cp Questions.json www/questions.json || cp questions.json www/questions.json || echo "no file"
           rm -rf android
 
       - name: Capacitor Sync

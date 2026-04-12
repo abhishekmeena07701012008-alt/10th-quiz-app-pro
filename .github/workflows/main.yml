@@ -7,11 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # यहाँ हमने जॉब के अंदर ही परमिशन लिख दी है
     permissions:
       contents: write
-      packages: write
-      actions: write
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -22,7 +19,9 @@ jobs:
           node-version: 20
 
       - name: Install Dependencies
-        run: npm install
+        run: |
+          npm install
+          npm install @capacitor/android
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -36,8 +35,8 @@ jobs:
           cp index.html www/ || true
           cp questions.json www/ || true
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
-          npx cap add android
-          npx cap copy android
+          npx cap add android || true
+          npx cap sync android
 
       - name: Create Keystore
         run: |
@@ -58,5 +57,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Quiz-Pro-App
+          name: Quiz-Pro-Final-App
           path: android/app/build/outputs/apk/release/*.apk

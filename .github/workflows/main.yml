@@ -17,7 +17,7 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Dependencies and Build
+      - name: Install and Build
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
           mkdir -p www && cp index.html www/ && cp questions.json www/
@@ -26,28 +26,21 @@ jobs:
           npx cap sync android
           cd android && chmod +x gradlew && ./gradlew assembleRelease
 
-      - name: Extract Alias and Sign
+      - name: Sign APK (The Real Way)
         run: |
+          # कीस्टोर फाइल डिकोड करना
           echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > release.keystore
           
-          # Alias ढूंढना
-          ALIAS=$(keytool -list -v -keystore release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD }}" | grep "Alias name" | cut -d ' ' -f 3 | head -n 1)
-          echo "Found Alias: $ALIAS"
-          
-          wget https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
-          java -jar uber-apk-signer-1.3.0.jar --apks android/app/build/outputs/apk/release/app-release-unsigned.apk \
-            --ks release.keystore \
-            --ksAlias $ALIAS \
-            --ksPass "${{ secrets.KEYSTORE_PASSWORD }}" \
-            --ksKeyPass "${{ secrets.KEYSTORE_PASSWORD }}"
-          
-          # साइन की हुई APK को बाहर कॉपी करना ताकि ज़िप के अंदर फोल्डर न बने
-          cp android/app/build/outputs/apk/release/*-signed.apk ./app-final.apk
+          # एंड्रॉइड के असली टूल से साइन करना
+          $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks release.keystore \
+            --ks-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
+            --ks-key-alias upload \
+            --key-pass pass:"${{ secrets.KEYSTORE_PASSWORD }}" \
+            --out 10th-Quiz-Pro.apk \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-APK
-          # यहाँ अब हम सीधा फाइल का नाम दे रहे हैं
-          path: app-final.apk
-          if-no-files-found: error
+          name: 10th-Quiz-Pro-Install-File
+          path: 10th-Quiz-Pro.apk

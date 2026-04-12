@@ -191,3 +191,27 @@
 </script>
 </body>
 </html>
+<script>
+    function checkConnectivity() {
+        if (!navigator.onLine) {
+            document.body.innerHTML = `
+                <div style="height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; color: white; text-align: center; padding: 20px; font-family: sans-serif; position: fixed; top:0; left:0; z-index: 9999;">
+                    <div style="background: #1e293b; padding: 40px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #334155;">
+                        <h1 style="font-size: 4rem; margin: 0;">📡</h1>
+                        <h2 style="color: #fbbf24; margin-top: 10px;">इंटरनेट बंद है!</h2>
+                        <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.5;">क्विज़ खेलने और विज्ञापन लोड करने के लिए <br> कृपया अपना इंटरनेट चालू करें।</p>
+                        <button onclick="location.reload()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 15px 40px; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">फिर से कोशिश करें</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // इवेंट लिसनर्स
+    window.addEventListener('load', checkConnectivity);
+    window.addEventListener('offline', checkConnectivity);
+    window.addEventListener('online', () => location.reload());
+</script>
+
+</body>
+</html>

@@ -17,7 +17,7 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install and Build
+      - name: Install Dependencies and Build
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
           mkdir -p www && cp index.html www/ && cp questions.json www/
@@ -26,21 +26,28 @@ jobs:
           npx cap sync android
           cd android && chmod +x gradlew && ./gradlew assembleRelease
 
-      - name: Sign APK
+      - name: Extract Alias and Sign
         run: |
           echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > release.keystore
+          
+          # Alias ढूंढना
+          ALIAS=$(keytool -list -v -keystore release.keystore -storepass "${{ secrets.KEYSTORE_PASSWORD }}" | grep "Alias name" | cut -d ' ' -f 3 | head -n 1)
+          echo "Found Alias: $ALIAS"
+          
           wget https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
           java -jar uber-apk-signer-1.3.0.jar --apks android/app/build/outputs/apk/release/app-release-unsigned.apk \
             --ks release.keystore \
-            --ksAlias upload \
+            --ksAlias $ALIAS \
             --ksPass "${{ secrets.KEYSTORE_PASSWORD }}" \
             --ksKeyPass "${{ secrets.KEYSTORE_PASSWORD }}"
-          # साइन की हुई फाइल को बाहर निकालना ताकि आसानी से मिले
+          
+          # साइन की हुई APK को बाहर कॉपी करना ताकि ज़िप के अंदर फोल्डर न बने
           cp android/app/build/outputs/apk/release/*-signed.apk ./app-final.apk
 
-      - name: Upload APK
+      - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: Final-App-File
+          name: 10th-Quiz-Pro-APK
+          # यहाँ अब हम सीधा फाइल का नाम दे रहे हैं
           path: app-final.apk
-          compression-level: 0
+          if-no-files-found: error

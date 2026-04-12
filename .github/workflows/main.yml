@@ -25,9 +25,8 @@ jobs:
       - name: Force Build Assets
         run: |
           mkdir -p www
-          # यहाँ मैंने आपके फाइल के नाम (Index.html और Questions.json) के हिसाब से बदलाव कर दिया है
-          cp Index.html www/index.html || cp index.html www/index.html || echo "no file"
-          cp Questions.json www/questions.json || cp questions.json www/questions.json || echo "no file"
+          cp Index.html www/index.html || cp index.html www/index.html || echo "no html"
+          cp Questions.json www/questions.json || cp questions.json www/questions.json || echo "no json"
           rm -rf android
 
       - name: Capacitor Sync
@@ -39,6 +38,8 @@ jobs:
       - name: Sign and Build APK
         run: |
           cd android/app
+          # यहाँ पुरानी फाइल को हटाने की कमांड जोड़ दी है ताकि एरर न आए
+          rm -f release.keystore
           keytool -genkeypair -v -alias quiz -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek" -noprompt
           cd ..
           chmod +x gradlew

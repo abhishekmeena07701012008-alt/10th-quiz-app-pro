@@ -15,7 +15,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '11' # हमने यहाँ Java का पुराना वर्शन कर दिया ताकि Keystore एरर न दे
 
       - name: Install Dependencies
         run: |
@@ -23,25 +23,28 @@ jobs:
           mkdir -p www && cp index.html www/ && cp questions.json www/
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
+          npx cap sync android
 
-      - name: Prepare Keystore File
-        run: |
-          # Keystore को सही जगह पर रखना
-          echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > android/app/release.keystore
-
-      - name: Build Signed APK
+      - name: Build Unsigned APK
         run: |
           cd android
           chmod +x gradlew
-          # इस कमांड से एंड्रॉइड अपने आप आपकी फाइल इस्तेमाल करेगा
-          ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file=release.keystore \
-            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
-            -Pandroid.injected.signing.key.alias=upload \
-            -Pandroid.injected.signing.key.password="${{ secrets.KEYSTORE_PASSWORD }}"
+          ./gradlew assembleRelease
+
+      - name: Sign APK
+        run: |
+          # Keystore को वापस फाइल में बदलना
+          echo "${{ secrets.RELEASE_KEYSTORE }}" | base64 --decode > release.keystore
+          
+          # APK को साइन करना (पासवर्ड 905701 और Alias 'upload')
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore release.keystore \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk upload
 
       - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Final
+          name: 10th-Quiz-Pro-Signed
           path: android/app/build/outputs/apk/release/*.apk

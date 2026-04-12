@@ -18,37 +18,36 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Ionic and Capacitor
-        run: npm install -g @ionic/cli @capacitor/cli
-
-      - name: Install Dependencies
-        run: npm install
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Build Web Assets
+      - name: Install Capacitor
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android
+
+      - name: Prepare Web Directory
         run: |
           mkdir -p www
-          cp index.html www/ || true
-          cp questions.json www/ || true
+          cp index.html www/
+          cp questions.json www/
+          # यह चेक करने के लिए कि फाइलें कॉपी हुई या नहीं
+          ls www/
 
-      - name: Create Android Project
+      - name: Initialize and Build Android
         run: |
           rm -rf android
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
           npx cap copy android
 
-      - name: Generate Keystore
+      - name: Create Keystore
         run: |
           cd android/app
           keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
-      - name: Build APK
+      - name: Build APK with Gradle
         run: |
           cd android
           chmod +x gradlew
@@ -58,8 +57,8 @@ jobs:
             -Pandroid.injected.signing.key.alias=quizpro \
             -Pandroid.injected.signing.key.password=905701
 
-      - name: Upload Artifact
+      - name: Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Final
+          name: 10th-Quiz-Pro-App
           path: android/app/build/outputs/apk/release/*.apk

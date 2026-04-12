@@ -35,28 +35,26 @@ jobs:
           npx cap init "10th Quiz Pro" "com.abhishek.quizpro" --web-dir www
           npx cap add android
 
-      - name: Build APK
+      - name: Build Unsigned APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Sign APK (New Method)
+      - name: Sign APK (With New Password)
         run: |
-          # कीस्टोर फाइल को डिकोड करके सेव करना
-          echo "${{ secrets.KEYSTORE }}" | base64 --decode > release.keystore
-          
-          # साइन करने का पक्का कमांड
+          echo "${{ secrets.KEYSTORE }}" | base64 -d > release.jks
+          # आपका सही पासवर्ड यहाँ इस्तेमाल हो रहा है
           /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner sign \
-            --ks release.keystore \
+            --ks release.jks \
             --ks-key-alias key0 \
-            --ks-pass pass:${{ secrets.RELEASE_PASSWORD }} \
-            --key-pass pass:${{ secrets.RELEASE_PASSWORD }} \
+            --ks-pass pass:abhishekmeena2008 \
+            --key-pass pass:abhishekmeena2008 \
             --out 10th-Quiz-Pro-Signed.apk \
             android/app/build/outputs/apk/release/app-release-unsigned.apk
 
-      - name: Upload APK
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Signed
+          name: 10th-Quiz-Pro-Signed-APK
           path: 10th-Quiz-Pro-Signed.apk

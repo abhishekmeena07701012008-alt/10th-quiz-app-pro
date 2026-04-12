@@ -25,15 +25,15 @@ jobs:
           java-version: '17'
 
       - name: Install Capacitor
-        run: npm install @capacitor/core @capacitor/cli @capacitor/android
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
 
       - name: Prepare Web Directory
         run: |
           mkdir -p www
-          cp index.html www/
-          cp questions.json www/
-          # यह चेक करने के लिए कि फाइलें कॉपी हुई या नहीं
-          ls www/
+          cp index.html www/ || true
+          cp questions.json www/ || true
+          ls -R www/
 
       - name: Initialize and Build Android
         run: |

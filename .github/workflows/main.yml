@@ -19,17 +19,15 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap android add || true
-
-      - name: Build Web Assets
-        run: |
           mkdir -p www
           cp index.html www/
           cp questions.json www/ || true
           cp app-ads.txt www/ || true
 
-      - name: Sync with Capacitor
-        run: npx cap sync android
+      - name: Initialize Capacitor and Add Android
+        run: |
+          npx cap init "10th Quiz Pro" "com.abhishek.quizpro" --web-dir www
+          npx cap add android
 
       - name: Build APK
         run: |

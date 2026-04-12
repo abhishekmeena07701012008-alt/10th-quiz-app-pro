@@ -24,18 +24,17 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Capacitor
+      - name: Install Dependencies
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Prepare Web Directory
+      - name: Prepare Web Assets
         run: |
           mkdir -p www
           cp index.html www/ || true
           cp questions.json www/ || true
-          ls -R www/
 
-      - name: Initialize and Build Android
+      - name: Build Android
         run: |
           rm -rf android
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
@@ -47,7 +46,7 @@ jobs:
           cd android/app
           keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
-      - name: Build APK with Gradle
+      - name: Gradle Build
         run: |
           cd android
           chmod +x gradlew
@@ -57,8 +56,8 @@ jobs:
             -Pandroid.injected.signing.key.alias=quizpro \
             -Pandroid.injected.signing.key.password=905701
 
-      - name: Upload Final APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-App
+          name: Quiz-App-Final
           path: android/app/build/outputs/apk/release/*.apk

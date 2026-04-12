@@ -41,10 +41,19 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Sign APK (Manual Mode)
+      - name: Sign APK (New Method)
         run: |
-          echo "${{ secrets.KEYSTORE }}" | base64 -d > release.keystore
-          /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner sign --ks release.keystore --ks-key-alias key0 --ks-pass pass:${{ secrets.RELEASE_PASSWORD }} --key-pass pass:${{ secrets.RELEASE_PASSWORD }} --out 10th-Quiz-Pro-Signed.apk android/app/build/outputs/apk/release/app-release-unsigned.apk
+          # कीस्टोर फाइल को डिकोड करके सेव करना
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > release.keystore
+          
+          # साइन करने का पक्का कमांड
+          /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner sign \
+            --ks release.keystore \
+            --ks-key-alias key0 \
+            --ks-pass pass:${{ secrets.RELEASE_PASSWORD }} \
+            --key-pass pass:${{ secrets.RELEASE_PASSWORD }} \
+            --out 10th-Quiz-Pro-Signed.apk \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

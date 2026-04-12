@@ -188,66 +188,66 @@
         document.getElementById('perf-msg').innerText = msg;
         document.getElementById('final-score').style.color = color;
     }
-</script>
-</body>
-</html>
-<script src="cordova.js"></script> <script>
-    // --- आपकी AdMob डिटेल्स यहाँ सेट हैं ---
-    const AD_PUBLISHER_ID = "ca-app-pub-3294666124278706";
+<script src="cordova.js"></script>
+
+<script>
+    // --- आपकी एड्स डिटेल्स (Publisher: pub-3294666124278706) ---
     const BANNER_ID = "ca-app-pub-3294666124278706/2113872107";
     const INTERSTITIAL_ID = "ca-app-pub-3294666124278706/3782176991";
 
-    // AdMob SDK को शुरू करना
+    // 1. इंटरनेट लॉक सिस्टम (बिना नेट के ऐप नहीं चलेगी)
+    function checkAndLockInternet() {
+        if (!navigator.onLine) {
+            document.body.innerHTML = `
+                <div style="height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; color: white; text-align: center; padding: 20px; position: fixed; top:0; left:0; z-index: 99999;">
+                    <div style="background: #1e293b; padding: 40px; border-radius: 24px; border: 2px solid #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);">
+                        <h1 style="font-size: 4rem; margin: 0;">📡</h1>
+                        <h2 style="color: #fbbf24; margin-top: 10px;">इंटरनेट बंद है!</h2>
+                        <p style="color: #cbd5e1; font-size: 1.1rem;">क्विज़ खेलने और विज्ञापन लोड करने के लिए <br> कृपया अपना इंटरनेट चालू करें।</p>
+                        <button onclick="location.reload()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 15px 40px; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 20px;">फिर से कोशिश करें</button>
+                    </div>
+                </div>
+            `;
+            return false;
+        }
+        return true;
+    }
+
+    // 2. AdMob SDK सेटअप
     document.addEventListener('deviceready', function() {
+        if (!checkAndLockInternet()) return;
+
         if (window.admob) {
-            // 1. बैनर एड दिखाओ (नीचे की तरफ)
+            // बैनर एड दिखाएं
             admob.banner.config({
                 id: BANNER_ID,
-                isTesting: false,
+                isTesting: true, // अभी टेस्टिंग के लिए true रखा है
                 autoShow: true
             });
             admob.banner.prepare();
 
-            // 2. फुल स्क्रीन एड (Interstitial) लोड करके रखो
+            // फुल स्क्रीन एड लोड करें
             admob.interstitial.config({
                 id: INTERSTITIAL_ID,
-                isTesting: false,
+                isTesting: true, // अभी टेस्टिंग के लिए true रखा है
                 autoShow: false
             });
             admob.interstitial.prepare();
         }
     }, false);
 
-    // इंटरनेट चेक करने वाला फंक्शन
-    function checkConnectivity() {
-        if (!navigator.onLine) {
-            document.body.innerHTML = `
-                <div style="height: 100vh; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #0f172a; color: white; text-align: center; padding: 20px; font-family: sans-serif; position: fixed; top:0; left:0; z-index: 9999;">
-                    <div style="background: #1e293b; padding: 40px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #334155;">
-                        <h1 style="font-size: 4rem; margin: 0;">📡</h1>
-                        <h2 style="color: #fbbf24; margin-top: 10px;">इंटरनेट बंद है!</h2>
-                        <p style="color: #cbd5e1; font-size: 1.1rem; line-height: 1.5;">क्विज़ खेलने और विज्ञापन लोड करने के लिए <br> कृपया अपना इंटरनेट चालू करें।</p>
-                        <button onclick="location.reload()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; padding: 15px 40px; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; margin-top: 20px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);">फिर से कोशिश करें</button>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    // इवेंट लिसनर्स
-    window.addEventListener('load', checkConnectivity);
-    window.addEventListener('offline', checkConnectivity);
+    // 3. लाइव इंटरनेट मॉनिटरिंग
+    window.addEventListener('load', checkAndLockInternet);
+    window.addEventListener('offline', checkAndLockInternet);
     window.addEventListener('online', () => location.reload());
 
-    // जब क्विज़ खत्म हो, तो इस फंक्शन को कॉल करें फुल स्क्रीन एड दिखाने के लिए
+    // 4. फुल स्क्रीन एड दिखाने के लिए (इस फंक्शन को शो रिपोर्ट के अंदर कॉल करें)
     function triggerFullAd() {
-        if (window.admob) {
+        if (window.admob && navigator.onLine) {
             admob.interstitial.show();
-            admob.interstitial.prepare(); // अगले एड की तैयारी
+            admob.interstitial.prepare(); 
         }
     }
 </script>
 
-</body>
-</html>
 

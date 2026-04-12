@@ -21,7 +21,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npm install @capacitor/android
+          npm install @capacitor/core @capacitor/cli @capacitor/android
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -29,22 +29,23 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Build Android Project
+      - name: Rebuild Android Project from Scratch
         run: |
           mkdir -p www
           cp index.html www/ || true
           cp questions.json www/ || true
+          # पुराने फोल्डर को पूरी तरह हटाकर नया बनाएंगे
+          rm -rf android
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
-          npx cap add android || true
-          npx cap sync android
+          npx cap add android
+          npx cap copy android
 
-      - name: Create Keystore
+      - name: Create Fresh Keystore
         run: |
           cd android/app
-          rm -f release.keystore
           keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
 
-      - name: Build APK with Gradle
+      - name: Build Final APK
         run: |
           cd android
           chmod +x gradlew
@@ -57,5 +58,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Quiz-Pro-Final-App
+          name: 10th-Quiz-Pro-App
           path: android/app/build/outputs/apk/release/*.apk

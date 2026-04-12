@@ -1,4 +1,4 @@
-name: Build Signed Android APK
+name: Build Debug APK
 on:
   push:
     branches: [ main ]
@@ -7,8 +7,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
@@ -22,31 +20,20 @@ jobs:
       - name: Install Dependencies
         run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Force Build Assets
-        run: |
-          mkdir -p www
-          cp Index.html www/index.html || cp index.html www/index.html || echo "no html"
-          cp Questions.json www/questions.json || cp questions.json www/questions.json || echo "no json"
-          rm -rf android
-
       - name: Capacitor Sync
         run: |
-          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
+          npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir .
           npx cap add android
-          npx cap copy android
+          npx cap sync android
 
-      - name: Sign and Build APK
+      - name: Build Debug APK
         run: |
-          cd android/app
-          rm -f release.keystore
-          keytool -genkeypair -v -alias quiz -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek" -noprompt
-          cd ..
+          cd android
           chmod +x gradlew
-          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=release.keystore -Pandroid.injected.signing.store.password=905701 -Pandroid.injected.signing.key.alias=quiz -Pandroid.injected.signing.key.password=905701
+          ./gradlew assembleDebug
 
-      - name: Upload Final APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Final
-          # यहाँ मैंने रास्ता बदला है ताकि फाइल 100% मिल जाए
-          path: "**/*.apk"
+          name: 10th-Quiz-Pro-Debug
+          path: android/app/build/outputs/apk/debug/*.apk

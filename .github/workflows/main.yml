@@ -22,12 +22,16 @@ jobs:
       - name: Install Dependencies
         run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Build Web and Android
+      - name: Force Build Assets
         run: |
           mkdir -p www
-          cp index.html www/ || true
-          cp questions.json www/ || true
+          # फाइलों को पूरे प्रोजेक्ट में कहीं भी हो, ढूंढकर www में डालो
+          find . -name "index.html" -exec cp {} www/ \; || echo "<html><body>Quiz</body></html>" > www/index.html
+          find . -name "questions.json" -exec cp {} www/ \; || echo "[]" > www/questions.json
           rm -rf android
+
+      - name: Capacitor Sync
+        run: |
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
           npx cap copy android

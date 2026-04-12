@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK (Unsigned)
 
 on:
   push:
@@ -35,28 +35,14 @@ jobs:
           npx cap init "10th Quiz Pro" "com.abhishek.quizpro" --web-dir www
           npx cap add android
 
-      - name: Build Unsigned APK
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Sign APK (Smart Method)
-        run: |
-          echo "${{ secrets.KEYSTORE }}" | base64 -d > release.jks
-          
-          # ऑटोमेटिकली असली Alias ढूँढना और साइन करना
-          ALIAS=$(keytool -list -v -keystore release.jks -storepass abhishekmeena2008 | grep 'Alias name' | cut -d' ' -f3)
-          echo "Found Alias: $ALIAS"
-          
-          /usr/local/lib/android/sdk/build-tools/34.0.0/apksigner sign \
-            --ks release.jks \
-            --ks-pass pass:abhishekmeena2008 \
-            --out 10th-Quiz-Pro-Signed.apk \
-            android/app/build/outputs/apk/release/app-release-unsigned.apk
-
-      - name: Upload Signed APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Signed-APK
-          path: 10th-Quiz-Pro-Signed.apk
+          name: 10th-Quiz-Pro-Final
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk

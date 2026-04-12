@@ -13,11 +13,6 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -25,39 +20,28 @@ jobs:
           java-version: '17'
 
       - name: Install Dependencies
-        run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+        run: npm install @capacitor/core @capacitor/cli @capacitor/android
 
-      - name: Prepare Web Assets
+      - name: Build Web and Android
         run: |
           mkdir -p www
           cp index.html www/ || true
           cp questions.json www/ || true
-
-      - name: Build Android
-        run: |
           rm -rf android
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir www
           npx cap add android
           npx cap copy android
 
-      - name: Create Keystore
+      - name: Sign and Build APK
         run: |
           cd android/app
-          keytool -genkeypair -v -alias quizpro -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek, O=QuizPro, C=IN" -noprompt
-
-      - name: Gradle Build
-        run: |
-          cd android
+          keytool -genkeypair -v -alias quiz -keyalg RSA -keysize 2048 -validity 10000 -keystore release.keystore -storepass 905701 -keypass 905701 -dname "CN=Abhishek" -noprompt
+          cd ..
           chmod +x gradlew
-          ./gradlew assembleRelease \
-            -Pandroid.injected.signing.store.file=release.keystore \
-            -Pandroid.injected.signing.store.password=905701 \
-            -Pandroid.injected.signing.key.alias=quizpro \
-            -Pandroid.injected.signing.key.password=905701
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.file=release.keystore -Pandroid.injected.signing.store.password=905701 -Pandroid.injected.signing.key.alias=quiz -Pandroid.injected.signing.key.password=905701
 
-      - name: Upload APK
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Quiz-App-Final
+          name: Final-Quiz-App
           path: android/app/build/outputs/apk/release/*.apk

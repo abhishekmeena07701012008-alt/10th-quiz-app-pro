@@ -4,13 +4,14 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# यहाँ हमने गिटहब को परमिशन खुद दे दी है
-permissions:
-  contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    # यहाँ हमने जॉब के अंदर ही परमिशन लिख दी है
+    permissions:
+      contents: write
+      packages: write
+      actions: write
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4

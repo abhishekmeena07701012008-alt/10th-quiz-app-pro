@@ -17,17 +17,12 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Install Dependencies
-        run: npm install @capacitor/core @capacitor/cli @capacitor/android
-
-      - name: Capacitor Sync
+      - name: Build APK
         run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
           npx cap init "10th Quiz Pro" com.abhishek.quizpro --web-dir .
           npx cap add android
           npx cap sync android
-
-      - name: Build Debug APK
-        run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
@@ -35,5 +30,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: 10th-Quiz-Pro-Debug
+          name: 10th-Quiz-Pro-App
           path: android/app/build/outputs/apk/debug/*.apk

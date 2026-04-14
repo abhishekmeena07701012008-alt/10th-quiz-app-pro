@@ -129,10 +129,9 @@
             admob.banner.config({ id: BANNER_ID, isTesting: true, autoShow: true });
             admob.banner.prepare();
             admob.interstitial.config({ id: INTERSTITIAL_ID, isTesting: true, autoShow: false });
-            admob.interstitial.prepare();
-        }
-    }, false);
-
+            admob.banner.config({ id: BANNER_ID, isTesting: false, autoShow: true });
+            admob.banner.prepare();
+            admob.interstitial.config({ id: INTERSTITIAL_ID, isTesting: false, autoShow: false });
     window.addEventListener('offline', checkInternet);
     window.addEventListener('online', () => location.reload());
 

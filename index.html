@@ -17,14 +17,10 @@
         .btn-sub { background: #2563eb; text-align: left; padding-left: 15px; }
         .back-btn { position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 12px; border-radius: 8px; z-index: 1000; }
         .option-btn { width: 100%; padding: 14px; margin: 8px 0; border: 2px solid #475569; border-radius: 12px; background: #1e293b; color: white; text-align: left; font-size: 1rem; cursor: pointer; transition: 0.2s; }
-        
-        /* सही और गलत के लिए कलर्स */
         .correct { background: #059669 !important; border-color: #10b981 !important; transform: scale(1.02); }
         .wrong { background: #dc2626 !important; border-color: #ef4444 !important; }
-        
         .score-val { font-size: 4.5rem; color: var(--accent); font-weight: 800; }
         .report-grid { display: flex; justify-content: space-around; margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 15px; }
-        #bottom-ad { position: fixed; bottom: 0; left: 0; width: 100%; height: 50px; background: #000; z-index: 200; }
     </style>
 </head>
 <body>
@@ -73,24 +69,40 @@
         </div>
     </div>
 
-    <div id="bottom-ad"></div>
-
 <script>
-    // --- ADMOB IDS ---
+    // --- ADMOB CONFIG ---
     const BANNER_ID = 'ca-app-pub-3294666124278706/2113872107';
     const INTERSTITIAL_ID = 'ca-app-pub-3294666124278706/3782176991'; 
 
+    // ऐप लोड होते ही एड्स को Initialize करें
+    window.onload = () => {
+        initializeAds();
+    };
+
     async function initializeAds() {
         if (window.Capacitor && window.AdMob) {
-            await AdMob.initialize();
-            AdMob.showBanner({ adId: BANNER_ID, position: 'BOTTOM_CENTER', margin: 0 });
+            try {
+                await AdMob.initialize();
+                // बैनर दिखाएँ
+                await AdMob.showBanner({
+                    adId: BANNER_ID,
+                    position: 'BOTTOM_CENTER',
+                    margin: 0,
+                    isTesting: false 
+                });
+                // इंटरस्टिशियल लोड करके रखें
+                await AdMob.prepareInterstitial({ adId: INTERSTITIAL_ID });
+            } catch (e) { console.log("AdMob Init Error: " + e.message); }
         }
     }
 
     async function showInterstitial() {
         if (window.Capacitor && window.AdMob) {
-            await AdMob.prepareInterstitial({ adId: INTERSTITIAL_ID });
-            await AdMob.showInterstitial();
+            try {
+                await AdMob.showInterstitial();
+                // अगली बार के लिए फिर से तैयार करें
+                await AdMob.prepareInterstitial({ adId: INTERSTITIAL_ID });
+            } catch (e) { console.log("Ad Show Error: " + e.message); }
         }
     }
 
@@ -101,7 +113,6 @@
         lang = l; 
         document.getElementById('lang-screen').classList.add('hidden'); 
         document.getElementById('sub-screen').classList.remove('hidden'); 
-        initializeAds(); 
     }
 
     function goBack() { location.reload(); }
@@ -120,20 +131,16 @@
 
     function loadQuestion() { 
         if (currentIndex >= quizSet.length) { showReport(); return; } 
-        
         clearInterval(timer); 
-        timeLeft = 20; // समय बढ़ाकर 20 सेकंड किया
-        
+        timeLeft = 20; 
         const bar = document.getElementById('timer-bar'); 
         bar.style.transition = 'none'; 
         bar.style.width = '100%'; 
         setTimeout(() => { bar.style.transition = 'linear 20s'; bar.style.width = '0%'; }, 50); 
-        
         const q = quizSet[currentIndex]; 
         document.getElementById('active-sub').innerText = subject.toUpperCase(); 
         document.getElementById('q-count').innerText = `${currentIndex + 1} / ${quizSet.length}`; 
         document.getElementById('q-text').innerText = (lang === 'hi') ? q.question_hi : q.question_en; 
-        
         const container = document.getElementById('opt-container'); 
         container.innerHTML = ''; 
         q.options.forEach(opt => { 
@@ -143,7 +150,6 @@
             btn.onclick = () => handleAnswer(btn, opt, q.answer); 
             container.appendChild(btn); 
         }); 
-        
         timer = setInterval(() => { 
             timeLeft--; 
             if (timeLeft <= 0) handleAnswer(null, null, q.answer);
@@ -154,26 +160,17 @@
         clearInterval(timer); 
         const container = document.getElementById('opt-container');
         const buttons = container.getElementsByClassName('option-btn');
-        
-        // क्लिक रोकने के लिए
         Array.from(buttons).forEach(b => b.style.pointerEvents = 'none');
-
         if (selected === correct) {
             if(btn) btn.classList.add('correct');
             score++;
         } else {
             if(btn) btn.classList.add('wrong');
-            // सही वाले को हाईलाइट करना
             Array.from(buttons).forEach(b => {
                 if(b.innerText === correct) b.classList.add('correct');
             });
         }
-
-        // 1 सेकंड बाद अगला सवाल
-        setTimeout(() => { 
-            currentIndex++; 
-            loadQuestion(); 
-        }, 1000); 
+        setTimeout(() => { currentIndex++; loadQuestion(); }, 1000); 
     }
 
     function showReport() { 
@@ -183,7 +180,7 @@
         document.getElementById('final-score').innerText = per + "%"; 
         document.getElementById('stat-correct').innerText = score;
         document.getElementById('stat-wrong').innerText = quizSet.length - score;
-        showInterstitial(); 
+        showInterstitial(); // रिजल्ट स्क्रीन पर एड दिखाएँ
     }
 </script>
 </body>

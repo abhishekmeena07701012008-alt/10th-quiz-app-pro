@@ -1,4 +1,4 @@
-name: Build Android APK (Unsigned)
+Name: Build Android APK (Unsigned)
 
 on:
   push:
@@ -35,12 +35,17 @@ jobs:
           npx cap init "10th Quiz Pro" "com.abhishek.quizpro" --web-dir www
           npx cap add android
 
-      # यह नया स्टेप अमेज़न स्टोर के एरर को फिक्स करेगा
+      # --- यहाँ से नया सुधार शुरू ---
+      - name: Inject AdMob App ID into AndroidManifest
+        run: |
+          # यह कमांड मेनिफेस्ट फाइल में AdMob की App ID जोड़ देगी
+          # यहाँ 'ca-app-pub-3294666124278706~9263155799' तुम्हारी असली App ID है
+          sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3294666124278706~9263155799"/>' android/app/src/main/AndroidManifest.xml
+      # --- यहाँ तक सुधार खत्म ---
+
       - name: Set Android Version Code Automatically
         run: |
-          # यह कमांड build.gradle में versionCode 1 को GitHub Run Number से बदल देगी
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/g" android/app/build.gradle
-          # यह versionName को भी अपडेट कर देगी (जैसे 1.0.1, 1.0.2...)
           sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/g" android/app/build.gradle
 
       - name: Build APK

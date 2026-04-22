@@ -24,7 +24,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
+          # AdMob प्लगइन और Capacitor को इंस्टॉल करना
+          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-community/admob
           mkdir -p www
           cp index.html www/
           cp questions.json www/ || true
@@ -35,16 +36,17 @@ jobs:
           npx cap init "10th Quiz Pro" "com.abhishek.quizpro" --web-dir www
           npx cap add android
 
-      # --- यहाँ से नया सुधार शुरू ---
-      - name: Inject AdMob App ID into AndroidManifest
+      - name: Inject AdMob Meta-data into AndroidManifest
         run: |
-          # यह कमांड मेनिफेस्ट फाइल में AdMob की App ID जोड़ देगी
-          # यहाँ 'ca-app-pub-3294666124278706~9263155799' तुम्हारी असली App ID है
+          # यह कमांड AndroidManifest.xml में आपकी App ID (मीठा) को सही जगह फिट कर देगी
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3294666124278706~9263155799"/>' android/app/src/main/AndroidManifest.xml
-      # --- यहाँ तक सुधार खत्म ---
+
+      - name: Sync Capacitor
+        run: npx cap sync android
 
       - name: Set Android Version Code Automatically
         run: |
+          # वर्जन कोड को अपने आप अपडेट करना
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/g" android/app/build.gradle
           sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/g" android/app/build.gradle
 

@@ -37,20 +37,25 @@ jobs:
 
       - name: Inject AdMob Meta-data (मीठा)
         run: |
+          # AndroidManifest में सही जगह ID डालना
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3294666124278706~9263155799"/>' android/app/src/main/AndroidManifest.xml
 
-      - name: Sync Capacitor
-        run: npx cap sync android
+      - name: Sync and Update Capacitor
+        run: |
+          npx cap sync android
+          npx cap update android
 
       - name: Set Android Version Code Automatically
         run: |
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/g" android/app/build.gradle
           sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/g" android/app/build.gradle
 
-      - name: Build APK (Error Fixed)
+      - name: Build APK (Fixing Permissions)
         run: |
           cd android
-          bash ./gradlew assembleRelease
+          # परमिशन की समस्या जड़ से खत्म करने के लिए
+          chmod +x gradlew
+          ./gradlew assembleRelease --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

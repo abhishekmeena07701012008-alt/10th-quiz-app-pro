@@ -26,7 +26,6 @@ jobs:
         run: |
           npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-community/admob
           mkdir -p www
-          # Basic web files check
           touch index.html
           cp index.html www/
           [ -f questions.json ] && cp questions.json www/ || echo "{}" > www/questions.json
@@ -37,34 +36,32 @@ jobs:
           npx cap init "10th Quiz Pro" "com.abhishek.quizpro" --web-dir www
           npx cap add android
 
-      - name: Update Android SDK & Gradle Config (The Fix)
+      - name: Fix SDK 34 Requirement (Final Fix)
         run: |
-          # 1. variables.gradle ko 34 par set karna
+          # variables.gradle mein SDK change karna
           sed -i "s/compileSdkVersion = [0-9]*/compileSdkVersion = 34/g" android/variables.gradle
           sed -i "s/targetSdkVersion = [0-9]*/targetSdkVersion = 34/g" android/variables.gradle
-          
-          # 2. Main build.gradle mein Android Gradle Plugin ko update karna (Warning hatane ke liye)
-          sed -i "s/com.android.tools.build:gradle:[0-9.]*/com.android.tools.build:gradle:8.2.2/g" android/build.gradle
+          # app/build.gradle ke andar bhi force replace karna taaki conflict na ho
+          sed -i "s/compileSdkVersion.*/compileSdkVersion 34/g" android/app/build.gradle
+          sed -i "s/targetSdkVersion.*/targetSdkVersion 34/g" android/app/build.gradle
 
       - name: Inject AdMob Meta-data (मीठा)
         run: |
-          # AndroidManifest में AdMob ID डालना
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3294666124278706~9263155799"/>' android/app/src/main/AndroidManifest.xml
 
-      - name: Sync and Update Capacitor
-        run: |
-          npx cap sync android
+      - name: Sync Capacitor
+        run: npx cap sync android
 
       - name: Set Android Version Code Automatically
         run: |
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/g" android/app/build.gradle
           sed -i "s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/g" android/app/build.gradle
 
-      - name: Build APK (Fixing Permissions)
+      - name: Build APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease --stacktrace
+          ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

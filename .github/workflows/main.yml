@@ -35,9 +35,8 @@ jobs:
           npx cap init "10th Quiz Pro" "com.abhishek.quizpro" --web-dir www
           npx cap add android
 
-      - name: Inject AdMob Meta-data (मीठा)
+      - name: Inject AdMob Meta-data
         run: |
-          # AndroidManifest में सही जगह ID डालना
           sed -i '/<\/application>/i \        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3294666124278706~9263155799"/>' android/app/src/main/AndroidManifest.xml
 
       - name: Sync and Update Capacitor
@@ -45,11 +44,16 @@ jobs:
           npx cap sync android
           npx cap update android
 
-      - name: Update Android SDK Versions (Fix for API 34)
+      - name: Force Android SDK 34 (Ultimate Fix)
         run: |
-          # Capacitor 33 सेट करता है, हम उसे 34 से replace कर रहे हैं
-          sed -i -E "s/compileSdkVersion = [0-9]+/compileSdkVersion = 34/g" android/variables.gradle
-          sed -i -E "s/targetSdkVersion = [0-9]+/targetSdkVersion = 34/g" android/variables.gradle
+          # build.gradle ke andar compileSdk aur targetSdk ko force update karna
+          sed -i "s/compileSdkVersion.*/compileSdkVersion 34/g" android/app/build.gradle
+          sed -i "s/targetSdkVersion.*/targetSdkVersion 34/g" android/app/build.gradle
+          # variables.gradle ko bhi backup ke liye update kar dete hain
+          if [ -f android/variables.gradle ]; then
+            sed -i "s/compileSdkVersion =.*/compileSdkVersion = 34/g" android/variables.gradle
+            sed -i "s/targetSdkVersion =.*/targetSdkVersion = 34/g" android/variables.gradle
+          fi
 
       - name: Set Android Version Code Automatically
         run: |
@@ -59,7 +63,6 @@ jobs:
       - name: Build APK (Fixing Permissions)
         run: |
           cd android
-          # परमिशन की समस्या जड़ से खत्म करने के लिए
           chmod +x gradlew
           ./gradlew assembleRelease --stacktrace
 

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Fixed</title>
+    <style>
+        :root { --bg: #050a18; --primary: #00d2ff; --text: #ffffff; }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 100; }
+        .hidden { display: none !important; }
+        .card { background: #111827; padding: 25px; border-radius: 20px; width: 85%; max-width: 380px; text-align: center; border: 1px solid #333; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; color: white; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .sub-btn { background: #1f2937; padding: 15px; border-radius: 10px; color: white; border: 1px solid #444; cursor: pointer; }
+        #view-screen { overflow-y: auto; display: block; padding: 70px 15px 20px; }
+        .note-box { background: rgba(255,255,255,0.05); padding: 15px; margin-bottom: 12px; border-radius: 12px; border-left: 5px solid var(--primary); text-align: left; }
+        .back-nav { position: fixed; top: 15px; left: 15px; background: #374151; color: white; border: none; padding: 10px 15px; border-radius: 8px; z-index: 1000; }
+        .report-card { background: white; color: black; padding: 25px; border-radius: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen" class="screen">
+        <div class="card">
+            <h1 style="color:var(--primary)">10th Quiz Pro</h1>
+            <button class="btn" style="background:blue" onclick="openSub('Notes')">📚 नोट्स</button>
+            <button class="btn" style="background:purple" onclick="openSub('Quiz')">✍️ क्विज</button>
+        </div>
+    </div>
+
+    <div id="sub-screen" class="screen hidden">
+        <div class="card">
+            <h3>विषय चुनें</h3>
+            <div class="grid">
+                <button class="sub-btn" onclick="loadContent('Hindi')">Hindi</button>
+                <button class="sub-btn" onclick="loadContent('Science')">Science</button>
+                <button class="sub-btn" onclick="loadContent('Mathematics')">Maths</button>
+                <button class="sub-btn" onclick="loadContent('English')">English</button>
+                <button class="sub-btn" onclick="loadContent('Sanskrit')">Sanskrit</button>
+                <button class="sub-btn" onclick="loadContent('Social Science')">Social Sci</button>
+            </div>
+            <button onclick="location.reload()" style="margin-top:15px; background:none; border:none; color:gray;">Back</button>
+        </div>
+    </div>
+
+    <div id="view-screen" class="screen hidden">
+        <button class="back-nav" onclick="location.reload()">🏠 Home</button>
+        <div id="content-area"></div>
+    </div>
+
+<script>
+    let mode = '', quizData = [], qIdx = 0, score = 0, subName = '';
+
+    function openSub(m) {
+        mode = m;
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('sub-screen').classList.remove('hidden');
+    }
+
+    async function loadContent(sub) {
+        subName = sub;
+        document.getElementById('sub-screen').classList.add('hidden');
+        document.getElementById('view-screen').classList.remove('hidden');
+        const area = document.getElementById('content-area');
+        area.innerHTML = "<center>लोड हो रहा है...</center>";
+
+        // यहाँ मैंने फाइल का नाम बदल दिया है जैसा तुम्हारे स्क्रीनशॉट में है
+        const file = (mode === 'Notes') ? 'master_notes_10th.json.json' : 'questions.json';
+
+        try {
+            const res = await fetch(file);
+            if (!res.ok) throw "File Not Found";
+            const json = await res.json();
+
+            if (mode === 'Notes') {
+                // तुम्हारी फाइल में 'Hindi' का डेटा है, इसलिए Social Science पर एरर न आए इसके लिए चेक
+                let subData = Array.isArray(json) ? json.find(d => d.subject === sub) : (json.subject === sub ? json : null);
+                
+                if (!subData) {
+                    area.innerHTML = `<center style="margin-top:50px;">${sub} का डेटा अभी इस फाइल में नहीं है। <br> (अभी केवल Hindi का डेटा दिख रहा है)</center>`;
+                    return;
+                }
+
+                area.innerHTML = `<h2 style="text-align:center">${sub} Notes</h2>`;
+                subData.data.forEach(n => {
+                    area.innerHTML += `<div class="note-box"><b>प्र: ${n.question}</b><p>${n.answer.replace(/\\n/g, '<br>')}</p></div>`;
+                });
+            } else {
+                quizData = json.filter(q => q.subject === sub).sort(() => 0.5 - Math.random()).slice(0, 20);
+                renderQuiz();
+            }
+        } catch (e) {
+            area.innerHTML = `<center style="color:red; margin-top:50px;"><h3>⚠️ एरर!</h3><p>फाइल लोड नहीं हुई।</p></center>`;
+        }
+    }
+
+    function renderQuiz() {
+        if (qIdx >= quizData.length) { showResult(); return; }
+        const q = quizData[qIdx];
+        const area = document.getElementById('content-area');
+        area.innerHTML = `<p>Q: ${qIdx+1}/20</p><h3>${q.question_hi || q.question_en}</h3><div id="opts"></div>`;
+        
+        q.options.forEach(opt => {
+            const b = document.createElement('button');
+            b.style = "width:100%; padding:15px; margin:8px 0; background:#1f2937; color:white; border:1px solid #333; border-radius:10px; text-align:left;";
+            b.innerText = opt;
+            b.onclick = () => {
+                if (opt === q.answer) { b.style.background = "green"; score++; }
+                else { b.style.background = "red"; }
+                setTimeout(() => { qIdx++; renderQuiz(); }, 1000);
+            };
+            document.getElementById('opts').appendChild(b);
+        });
+    }
+
+    function showResult() {
+        const p = Math.round((score/quizData.length)*100);
+        document.getElementById('content-area').innerHTML = `
+            <center><div class="report-card"><h2>RESULT</h2><p>स्कोर: ${score}/20</p><h1>${p >= 40 ? 'PASS' : 'FAIL'}</h1><button class="btn" style="background:black; color:white" onclick="location.reload()">Home</button></div></center>`;
+    }
+</script>
+</body>
+</html>

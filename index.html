@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Fixed</title>
+    <style>
+        :root { --bg: #050a18; --accent: #ffd700; --primary: #00d2ff; --text: #ffffff; --correct: #00ff88; --wrong: #ff4b2b; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 100; padding: 20px; }
+        .hidden { display: none !important; }
+        .card { background: #111827; border: 1px solid rgba(255,255,255,0.1); padding: 25px; border-radius: 24px; width: 100%; max-width: 380px; text-align: center; }
+        .btn { display: block; width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 14px; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: white; }
+        .btn-notes { background: linear-gradient(45deg, #1e3a8a, #3b82f6); }
+        .btn-quiz { background: linear-gradient(45deg, #5b21b6, #8b5cf6); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .sub-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; color: white; cursor: pointer; }
+        #view-screen { overflow-y: auto; display: block; padding: 70px 20px 20px; }
+        .note-box { background: rgba(255,255,255,0.05); padding: 15px; margin-bottom: 15px; border-radius: 15px; border-left: 5px solid var(--primary); text-align: left; }
+        .back-nav { position: fixed; top: 15px; left: 15px; z-index: 1001; background: #1f2937; color: white; padding: 10px 15px; border: none; border-radius: 10px; }
+        /* Result Card */
+        .report-card { background: white; color: black; padding: 30px; border-radius: 20px; text-align: center; border: 5px double #333; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen" class="screen">
+        <div class="card">
+            <h1 style="color:var(--primary)">10th Quiz Pro</h1>
+            <button class="btn btn-notes" onclick="setMode('Notes')">📚 नोट्स</button>
+            <button class="btn btn-quiz" onclick="setMode('Quiz')">✍️ क्विज</button>
+        </div>
+    </div>
+
+    <div id="sub-screen" class="screen hidden">
+        <div class="card">
+            <h3>विषय चुनें</h3>
+            <div class="grid">
+                <button class="sub-btn" onclick="startApp('Hindi')">Hindi</button>
+                <button class="sub-btn" onclick="startApp('Science')">Science</button>
+                <button class="sub-btn" onclick="startApp('Mathematics')">Maths</button>
+                <button class="sub-btn" onclick="startApp('English')">English</button>
+                <button class="sub-btn" onclick="startApp('Sanskrit')">Sanskrit</button>
+                <button class="sub-btn" onclick="startApp('Social Science')">Social Sci</button>
+            </div>
+            <button onclick="location.reload()" style="margin-top:15px; color:gray; background:none; border:none;">Back</button>
+        </div>
+    </div>
+
+    <div id="view-screen" class="screen hidden">
+        <button class="back-nav" onclick="location.reload()">🏠 Home</button>
+        <div id="content-area"></div>
+    </div>
+
+<script>
+    let currentMode = '', quizData = [], qIdx = 0, score = 0, selectedSub = '';
+
+    function setMode(m) {
+        currentMode = m;
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('sub-screen').classList.remove('hidden');
+    }
+
+    async function startApp(sub) {
+        selectedSub = sub;
+        document.getElementById('sub-screen').classList.add('hidden');
+        document.getElementById('view-screen').classList.remove('hidden');
+        const area = document.getElementById('content-area');
+        area.innerHTML = "<center>लोड हो रहा है... 🚀</center>";
+
+        const fileName = (currentMode === 'Notes') ? 'master_notes_10th.json' : 'questions.json';
+
+        try {
+            const response = await fetch(fileName);
+            if (!response.ok) throw `फाइल '${fileName}' नहीं मिली!`;
+            const data = await response.json();
+
+            if (currentMode === 'Notes') {
+                // तुम्हारी फाइल के लिए फिक्स्ड लॉजिक
+                let subData = Array.isArray(data) ? data.find(d => d.subject === sub) : (data.subject === sub ? data : null);
+                
+                if (!subData) {
+                    area.innerHTML = `<center>Error: ${sub} का डेटा फाइल में नहीं मिला।</center>`;
+                    return;
+                }
+
+                area.innerHTML = `<h2 style="text-align:center">${sub} Notes</h2>`;
+                subData.data.forEach(item => {
+                    area.innerHTML += `<div class="note-box"><b>प्र: ${item.question}</b><p>${item.answer.replace(/\\n/g, '<br>')}</p></div>`;
+                });
+            } else {
+                // क्विज के लिए 20 सवाल
+                quizData = data.filter(q => q.subject === sub).sort(() => 0.5 - Math.random()).slice(0, 20);
+                loadQuiz();
+            }
+        } catch (error) {
+            area.innerHTML = `<center style="color:red; margin-top:50px;">
+                <h3>⚠️ एरर!</h3>
+                <p>${error}</p>
+                <small>चेक करें कि '${fileName}' फाइल आपके प्रोजेक्ट फोल्डर में है या नहीं।</small>
+            </center>`;
+        }
+    }
+
+    function loadQuiz() {
+        if (qIdx >= quizData.length) { showReport(); return; }
+        const q = quizData[qIdx];
+        const area = document.getElementById('content-area');
+        area.innerHTML = `<p>सवाल: ${qIdx+1}/20</p><h3>${q.question_hi || q.question_en}</h3><div id="opts"></div>`;
+        
+        q.options.forEach(opt => {
+            const b = document.createElement('button');
+            b.style = "width:100%; padding:15px; margin:8px 0; background:#111827; color:white; border:1px solid #333; border-radius:10px; text-align:left;";
+            b.innerText = opt;
+            b.onclick = () => {
+                if (opt === q.answer) { b.style.background = "green"; score++; }
+                else { b.style.background = "red"; }
+                setTimeout(() => { qIdx++; loadQuiz(); }, 1000);
+            };
+            document.getElementById('opts').appendChild(b);
+        });
+    }
+
+    function showReport() {
+        const p = Math.round((score/quizData.length)*100);
+        document.getElementById('content-area').innerHTML = `
+            <center>
+                <div class="report-card">
+                    <h2>REPORT CARD</h2>
+                    <p>विषय: ${selectedSub}</p>
+                    <p>स्कोर: ${score}/20</p>
+                    <h1 style="color:#3b82f6;">${p >= 40 ? 'PASS' : 'FAIL'}</h1>
+                    <p>प्रतिशत: ${p}%</p>
+                    <button class="btn" onclick="location.reload()" style="background:black; color:white;">Restart</button>
+                </div>
+            </center>`;
+    }
+</script>
+</body>
+</html>

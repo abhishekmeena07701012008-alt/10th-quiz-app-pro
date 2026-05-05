@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Final</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3294666124278706" crossorigin="anonymous"></script>
+    <style>
+        :root { --bg: #050a18; --glass: rgba(255, 255, 255, 0.05); --accent: #ffd700; --primary: #00d2ff; --text: #ffffff; --correct: #00ff88; --wrong: #ff4b2b; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 0; overflow-x: hidden; }
+        #net-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; text-align: center; }
+        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 100; padding: 20px; }
+        .hidden { display: none !important; }
+        .card { background: #111827; border: 1px solid rgba(255,255,255,0.1); padding: 25px; border-radius: 24px; width: 100%; max-width: 380px; text-align: center; }
+        .btn { display: block; width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 14px; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: white; }
+        .btn-notes { background: linear-gradient(45deg, #1e3a8a, #3b82f6); }
+        .btn-quiz { background: linear-gradient(45deg, #5b21b6, #8b5cf6); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .sub-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); padding: 18px; border-radius: 16px; color: white; cursor: pointer; }
+        #content-area { width: 100%; max-width: 600px; margin-top: 80px; padding-bottom: 80px; overflow-y: auto; text-align: left; }
+        .note-box { background: var(--glass); padding: 18px; margin-bottom: 15px; border-radius: 18px; border-left: 6px solid var(--primary); }
+        .option-btn { width: 100%; padding: 16px; margin: 10px 0; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; color: white; text-align: left; cursor: pointer; }
+        .correct { background: var(--correct) !important; color: #000 !important; font-weight: bold; }
+        .wrong { background: var(--wrong) !important; }
+        #timer-bar { position: fixed; top: 0; left: 0; width: 100%; height: 6px; background: var(--accent); z-index: 1000; }
+        .back-nav { position: fixed; top: 15px; left: 15px; z-index: 1001; background: #1f2937; color: white; padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; }
+        .report-card { background: white; color: #1a1a1a; padding: 30px; border-radius: 20px; width: 100%; max-width: 350px; margin: 50px auto; text-align: center; border: 5px solid #eee; }
+        .grade { font-size: 3.5rem; font-weight: 900; color: #3b82f6; margin: 10px 0; }
+        .ad-banner { position: fixed; bottom: 0; width: 100%; height: 50px; background: #000; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div id="net-screen" class="hidden"><div class="card"><h2>📶 इंटरनेट बंद है</h2></div></div>
+
+    <div id="home-screen" class="screen">
+        <div class="card">
+            <h1 style="color:var(--primary)">10th Quiz Pro</h1>
+            <button class="btn btn-notes" onclick="setMode('Notes')">📚 नोट्स (Notes)</button>
+            <button class="btn btn-quiz" onclick="setMode('Quiz')">✍️ क्विज (Quiz)</button>
+        </div>
+    </div>
+
+    <div id="sub-screen" class="screen hidden">
+        <div class="card">
+            <h2>विषय चुनें</h2>
+            <div class="grid">
+                <button class="sub-btn" onclick="start('Hindi')">Hindi</button>
+                <button class="sub-btn" onclick="start('Science')">Science</button>
+                <button class="sub-btn" onclick="start('Mathematics')">Maths</button>
+                <button class="sub-btn" onclick="start('English')">English</button>
+                <button class="sub-btn" onclick="start('Sanskrit')">Sanskrit</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-screen" class="screen hidden" style="justify-content: flex-start; overflow-y: auto;">
+        <div id="timer-bar" class="hidden"></div>
+        <button class="back-nav" onclick="location.reload()">🏠 Home</button>
+        <div id="content-area"></div>
+    </div>
+
+    <div class="ad-banner">Banner Ad ID: 2113872107</div>
+
+<script>
+    let mode = '', quizData = [], qIdx = 0, score = 0, currentSub = '';
+
+    function checkNet() {
+        !navigator.onLine ? document.getElementById('net-screen').classList.remove('hidden') : document.getElementById('net-screen').classList.add('hidden');
+    }
+    window.addEventListener('online', checkNet); window.addEventListener('offline', checkNet);
+
+    function setMode(m) {
+        mode = m;
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('sub-screen').classList.remove('hidden');
+    }
+
+    async function start(sub) {
+        currentSub = sub;
+        document.getElementById('sub-screen').classList.add('hidden');
+        document.getElementById('view-screen').classList.remove('hidden');
+        const area = document.getElementById('content-area');
+        area.innerHTML = "<center>लोड हो रहा है... 🚀</center>";
+
+        // यहाँ फाइल का नाम एकदम सही है
+        const file = (mode === 'Notes') ? 'master_notes_10th.json' : 'questions.json';
+        
+        try {
+            const res = await fetch(file);
+            if (!res.ok) throw "File Not Found";
+            const json = await res.json();
+            
+            if (mode === 'Notes') {
+                // तुम्हारी JSON फाइल में 'subject' की जगह 'Hindi' आदि डायरेक्ट हो सकता है या एरे हो सकता है
+                // यह लॉजिक तुम्हारी फाइल के स्ट्रक्चर ( {subject: "Hindi", data: [...]} ) को हैंडल करेगा
+                let subData = Array.isArray(json) ? json.find(d => d.subject === sub) : (json.subject === sub ? json : null);
+                
+                if (!subData) throw "No Data";
+
+                area.innerHTML = `<h2 style='color:var(--accent); text-align:center;'>${sub} Notes</h2>`;
+                subData.data.forEach(n => {
+                    area.innerHTML += `<div class="note-box"><b>प्र: ${n.question}</b><p style="margin-top:10px; color:#cbd5e1;">${n.answer.replace(/\\n/g, '<br>')}</p></div>`;
+                });
+            } else {
+                quizData = json.filter(q => q.subject === sub).sort(() => 0.5 - Math.random()).slice(0, 20);
+                document.getElementById('timer-bar').classList.remove('hidden');
+                loadQuiz();
+            }
+        } catch(e) { 
+            area.innerHTML = `<center style='margin-top:50px;'>डेटा नहीं मिला! ❌<br><small style='color:gray;'>Error: ${e}</small></center>`; 
+        }
+    }
+
+    function loadQuiz() {
+        if (qIdx >= quizData.length) { showReport(); return; }
+        const q = quizData[qIdx];
+        const area = document.getElementById('content-area');
+        area.innerHTML = `<p style="color:var(--accent)">S: ${qIdx+1}/20</p><h3>${q.question_hi || q.question_en}</h3><div id="opts"></div>`;
+        
+        q.options.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = 'option-btn'; b.innerText = opt;
+            b.onclick = () => {
+                const btns = document.querySelectorAll('.option-btn');
+                btns.forEach(btn => btn.style.pointerEvents = 'none');
+                if (opt === q.answer) { b.classList.add('correct'); score++; }
+                else { b.classList.add('wrong'); btns.forEach(btn => { if(btn.innerText === q.answer) btn.classList.add('correct'); }); }
+                setTimeout(() => { qIdx++; loadQuiz(); }, 1200);
+            };
+            document.getElementById('opts').appendChild(b);
+        });
+
+        const bar = document.getElementById('timer-bar');
+        bar.style.transition = 'none'; bar.style.width = '100%';
+        setTimeout(() => { bar.style.transition = 'linear 15s'; bar.style.width = '0%'; }, 100);
+    }
+
+    function showReport() {
+        document.getElementById('timer-bar').classList.add('hidden');
+        const p = Math.round((score/quizData.length)*100);
+        document.getElementById('content-area').innerHTML = `
+            <div class="report-card">
+                <h2 style="border-bottom:2px solid #eee; padding-bottom:10px;">MARK SHEET</h2>
+                <p>विषय: <b>${currentSub}</b></p>
+                <p>स्कोर: <b>${score}/${quizData.length}</b></p>
+                <div class="grade">${p >= 80 ? 'A+' : p >= 60 ? 'B' : p >= 40 ? 'C' : 'D'}</div>
+                <button class="btn btn-notes" onclick="location.reload()">Home</button>
+            </div>`;
+    }
+    window.onload = checkNet;
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-app-pub-3294666124278706" crossorigin="anonymous"></script>
+    <style>
+        /* तुम्हारा पुराना CSS यहाँ रहेगा, मैंने बस रिपोर्ट कार्ड के लिए थोड़ा अपडेट किया है */
+        :root { --primary: #00d2ff; --correct: #00ff88; --wrong: #ff4b2b; }
+        body { font-family: sans-serif; background: #050a18; color: white; margin: 0; }
+        .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #050a18; }
+        .hidden { display: none !important; }
+        .btn { width: 80%; padding: 15px; margin: 10px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 90%; }
+        .sub-btn { padding: 20px; background: #111827; color: white; border: 1px solid #333; border-radius: 15px; }
+        .note-box { background: rgba(255,255,255,0.05); padding: 15px; margin: 10px; border-radius: 10px; border-left: 5px solid var(--primary); }
+        /* रिपोर्ट कार्ड स्टाइल */
+        .report-card { background: white; color: black; padding: 25px; border-radius: 20px; text-align: center; width: 80%; max-width: 350px; }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen" class="screen">
+        <h1>10th Quiz Pro</h1>
+        <button class="btn" style="background:blue; color:white;" onclick="setMode('Notes')">📚 नोट्स</button>
+        <button class="btn" style="background:purple; color:white;" onclick="setMode('Quiz')">✍️ क्विज</button>
+    </div>
+
+    <div id="sub-screen" class="screen hidden">
+        <h2>विषय चुनें</h2>
+        <div class="grid">
+            <button class="sub-btn" onclick="start('Hindi')">Hindi</button>
+            <button class="sub-btn" onclick="start('Science')">Science</button>
+            <button class="sub-btn" onclick="start('Mathematics')">Maths</button>
+            <button class="sub-btn" onclick="start('English')">English</button>
+            <button class="sub-btn" onclick="start('Sanskrit')">Sanskrit</button>
+            <button class="sub-btn" onclick="start('Social Science')">Social Sci</button>
+        </div>
+    </div>
+
+    <div id="view-screen" class="screen hidden" style="justify-content: flex-start; overflow-y: auto; padding-top: 60px;">
+        <button onclick="location.reload()" style="position:fixed; top:15px; left:15px; padding:10px;">🏠 Home</button>
+        <div id="content-area" style="width:100%;"></div>
+    </div>
+
+<script>
+    let mode = '', quizData = [], qIdx = 0, score = 0, currentSub = '';
+
+    function setMode(m) {
+        mode = m;
+        document.getElementById('home-screen').classList.add('hidden');
+        document.getElementById('sub-screen').classList.remove('hidden');
+    }
+
+    async function start(sub) {
+        currentSub = sub;
+        document.getElementById('sub-screen').classList.add('hidden');
+        document.getElementById('view-screen').classList.remove('hidden');
+        const area = document.getElementById('content-area');
+        area.innerHTML = "<center>लोड हो रहा है...</center>";
+
+        // यहाँ तुम्हारी फाइल का नाम है
+        const file = (mode === 'Notes') ? 'master_notes_10th.json' : 'questions.json';
+        
+        try {
+            const res = await fetch(file);
+            const json = await res.json();
+            
+            if (mode === 'Notes') {
+                // तुम्हारी फाइल के स्ट्रक्चर को हैंडल करने का फिक्स
+                let subData = Array.isArray(json) ? json.find(d => d.subject === sub) : (json.subject === sub ? json : null);
+                
+                if (!subData) throw "No Data";
+
+                area.innerHTML = `<h2 style='text-align:center;'>${sub} Notes</h2>`;
+                subData.data.forEach(n => {
+                    area.innerHTML += `<div class="note-box"><b>प्र: ${n.question}</b><p>${n.answer.replace(/\\n/g, '<br>')}</p></div>`;
+                });
+            } else {
+                // 20 क्वेश्चन वाला अपडेट
+                quizData = json.filter(q => q.subject === sub).sort(() => 0.5 - Math.random()).slice(0, 20);
+                loadQuiz();
+            }
+        } catch(e) { 
+            area.innerHTML = "<center style='margin-top:50px;'>डेटा नहीं मिला! <br> फाइल में विषय का नाम चेक करें।</center>"; 
+        }
+    }
+
+    function loadQuiz() {
+        if (qIdx >= quizData.length) { showReport(); return; }
+        const q = quizData[qIdx];
+        const area = document.getElementById('content-area');
+        area.innerHTML = `<div style="padding:20px;"><p>सवाल: ${qIdx+1}/20</p><h3>${q.question_hi || q.question_en}</h3><div id="opts"></div></div>`;
+        
+        q.options.forEach(opt => {
+            const b = document.createElement('button');
+            b.style = "width:100%; padding:15px; margin:5px 0; background:#222; color:white; border:1px solid #444; border-radius:10px; text-align:left;";
+            b.innerText = opt;
+            b.onclick = () => {
+                if (opt === q.answer) { b.style.background = "green"; score++; }
+                else { b.style.background = "red"; }
+                setTimeout(() => { qIdx++; loadQuiz(); }, 1000);
+            };
+            document.getElementById('opts').appendChild(b);
+        });
+    }
+
+    function showReport() {
+        const p = Math.round((score/quizData.length)*100);
+        document.getElementById('content-area').innerHTML = `
+            <center style="margin-top:50px;">
+                <div class="report-card">
+                    <h2 style="border-bottom:2px solid #eee">रिजल्ट कार्ड</h2>
+                    <p>विषय: ${currentSub}</p>
+                    <p>सही उत्तर: ${score}/20</p>
+                    <h1 style="color:blue;">${p >= 40 ? 'PASS' : 'FAIL'}</h1>
+                    <p>प्रतिशत: ${p}%</p>
+                    <button class="btn" onclick="location.reload()" style="background:black; color:white;">Back Home</button>
+                </div>
+            </center>`;
+    }
+</script>
+</body>
+</html>

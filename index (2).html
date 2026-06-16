@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10th Quiz Pro - Super Fast Edition</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #fbbf24; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; padding-bottom: 60px; }
+        .screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 100; }
+        .hidden { display: none !important; }
+        #timer-container { position: absolute; top: 0; left: 0; width: 100%; height: 8px; background: #334155; }
+        #timer-bar { height: 100%; background: var(--accent); width: 100%; transition: linear 1s; box-shadow: 0 0 10px var(--accent); }
+        .card { background: var(--card); padding: 25px; border-radius: 20px; text-align: center; width: 90%; max-width: 450px; border: 1px solid #334155; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 12px; font-size: 1.1rem; cursor: pointer; font-weight: bold; color: white; }
+        .btn-lang { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .btn-sub { background: #2563eb; text-align: left; padding-left: 15px; }
+        .back-btn { position: absolute; top: 15px; left: 15px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 8px 12px; border-radius: 8px; z-index: 1000; }
+        .option-btn { width: 100%; padding: 14px; margin: 8px 0; border: 2px solid #475569; border-radius: 12px; background: #1e293b; color: white; text-align: left; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .correct { background: #059669 !important; border-color: #10b981 !important; transform: scale(1.02); }
+        .wrong { background: #dc2626 !important; border-color: #ef4444 !important; }
+        .score-val { font-size: 4.5rem; color: var(--accent); font-weight: 800; }
+        .report-grid { display: flex; justify-content: space-around; margin: 15px 0; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 15px; }
+    </style>
+</head>
+<body>
+
+    <div id="lang-screen" class="screen">
+        <div class="card">
+            <h1 style="color:var(--accent);">10th Quiz Pro</h1>
+            <button class="btn btn-lang" onclick="initApp('hi')">हिंदी माध्यम</button>
+            <button class="btn btn-lang" style="background:#059669" onclick="initApp('en')">English Medium</button>
+        </div>
+    </div>
+
+    <div id="sub-screen" class="screen hidden">
+        <div class="card">
+            <h2>विषय चुनें</h2>
+            <button class="btn btn-sub" onclick="startQuiz('Science')">🧪 Science / विज्ञान</button>
+            <button class="btn btn-sub" onclick="startQuiz('Mathematics')">📐 Maths / गणित</button>
+            <button class="btn btn-sub" onclick="startQuiz('Social Science')">🌍 SST / सा. विज्ञान</button>
+            <button class="btn btn-sub" onclick="startQuiz('Hindi')">📖 Hindi / हिंदी</button>
+            <button class="btn btn-sub" onclick="startQuiz('English')">🔤 English / अंग्रेजी</button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="screen hidden" style="justify-content: flex-start; padding-top: 60px;">
+        <button class="back-btn" onclick="goBack()">◀ Back</button>
+        <div id="timer-container"><div id="timer-bar"></div></div>
+        <div class="card">
+            <div style="display:flex; justify-content: space-between; font-size: 0.8rem; color:var(--accent); margin-bottom: 10px;">
+                <span id="active-sub"></span><span id="q-count"></span>
+            </div>
+            <h3 id="q-text" style="text-align: left; font-size: 1.1rem; line-height: 1.4; min-height: 60px;"></h3>
+            <div id="opt-container"></div>
+        </div>
+    </div>
+
+    <div id="report-screen" class="screen hidden">
+        <div class="card">
+            <h2 style="color: #94a3b8; font-size: 0.8rem;">RESULT</h2>
+            <div class="score-val" id="final-score">0%</div>
+            <div class="report-grid">
+                <div style="text-align:center"><span style="color:#10b981; display:block">Sahi</span><b id="stat-correct">0</b></div>
+                <div style="text-align:center"><span style="color:#ef4444; display:block">Galat</span><b id="stat-wrong">0</b></div>
+            </div>
+            <button class="btn btn-lang" onclick="location.reload()">दोबारा खेलें</button>
+            <button class="btn btn-sub" style="text-align:center" onclick="goBack()">Main Menu</button>
+        </div>
+    </div>
+
+<script>
+    // --- ADMOB CONFIG ---
+    const BANNER_ID = 'ca-app-pub-3294666124278706/2113872107';
+    const INTERSTITIAL_ID = 'ca-app-pub-3294666124278706/3782176991'; 
+
+    // Capacitor AdMob Plugin access
+    const getAdMob = () => {
+        if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AdMob) {
+            return window.Capacitor.Plugins.AdMob;
+        }
+        return null;
+    };
+
+    window.onload = () => {
+        // App load hone par thoda delay dein taaki Capacitor ready ho jaye
+        setTimeout(initializeAds, 1000);
+    };
+
+    async function initializeAds() {
+        const AdMob = getAdMob();
+        if (AdMob) {
+            try {
+                await AdMob.initialize();
+                
+                // Banner dikhayen
+                await AdMob.showBanner({
+                    adId: BANNER_ID,
+                    position: 'BOTTOM_CENTER',
+                    margin: 0,
+                    isTesting: false 
+                });
+
+                // Interstitial load karke rakhen
+                await AdMob.prepareInterstitial({ adId: INTERSTITIAL_ID });
+                console.log("AdMob Initialized successfully");
+            } catch (e) { 
+                console.error("AdMob Init Error: " + e.message); 
+            }
+        } else {
+            console.log("AdMob plugin not found (Web mode)");
+        }
+    }
+
+    async function showInterstitial() {
+        const AdMob = getAdMob();
+        if (AdMob) {
+            try {
+                await AdMob.showInterstitial();
+                // Agli baar ke liye phir se taiyaar karein
+                await AdMob.prepareInterstitial({ adId: INTERSTITIAL_ID });
+            } catch (e) { console.error("Ad Show Error: " + e.message); }
+        }
+    }
+
+    // --- QUIZ LOGIC ---
+    let lang = '', subject = '', quizSet = [], currentIndex = 0, score = 0, timer, timeLeft = 20;
+
+    function initApp(l) { 
+        lang = l; 
+        document.getElementById('lang-screen').classList.add('hidden'); 
+        document.getElementById('sub-screen').classList.remove('hidden'); 
+    }
+
+    function goBack() { location.reload(); }
+
+    async function startQuiz(sub) { 
+        subject = sub; 
+        document.getElementById('sub-screen').classList.add('hidden'); 
+        document.getElementById('quiz-screen').classList.remove('hidden'); 
+        try {
+            const res = await fetch('questions.json'); 
+            const data = await res.json(); 
+            quizSet = data.filter(q => q.subject === sub).sort(() => Math.random() - 0.5).slice(0, 20); 
+            if(quizSet.length === 0) {
+                alert("Is subject ke liye questions nahi mile!");
+                goBack();
+            } else {
+                loadQuestion();
+            }
+        } catch(e) { alert("questions.json file nahi mili!"); }
+    }
+
+    function loadQuestion() { 
+        if (currentIndex >= quizSet.length) { showReport(); return; } 
+        clearInterval(timer); 
+        timeLeft = 20; 
+        const bar = document.getElementById('timer-bar'); 
+        bar.style.transition = 'none'; 
+        bar.style.width = '100%'; 
+        setTimeout(() => { bar.style.transition = 'linear 20s'; bar.style.width = '0%'; }, 50); 
+        const q = quizSet[currentIndex]; 
+        document.getElementById('active-sub').innerText = subject.toUpperCase(); 
+        document.getElementById('q-count').innerText = `${currentIndex + 1} / ${quizSet.length}`; 
+        document.getElementById('q-text').innerText = (lang === 'hi') ? q.question_hi : q.question_en; 
+        const container = document.getElementById('opt-container'); 
+        container.innerHTML = ''; 
+        q.options.forEach(opt => { 
+            const btn = document.createElement('button'); 
+            btn.className = 'option-btn'; 
+            btn.innerText = opt; 
+            btn.onclick = () => handleAnswer(btn, opt, q.answer); 
+            container.appendChild(btn); 
+        }); 
+        timer = setInterval(() => { 
+            timeLeft--; 
+            if (timeLeft <= 0) handleAnswer(null, null, q.answer);
+        }, 1000); 
+    }
+
+    function handleAnswer(btn, selected, correct) { 
+        clearInterval(timer); 
+        const container = document.getElementById('opt-container');
+        const buttons = container.getElementsByClassName('option-btn');
+        Array.from(buttons).forEach(b => b.style.pointerEvents = 'none');
+        if (selected === correct) {
+            if(btn) btn.classList.add('correct');
+            score++;
+        } else {
+            if(btn) btn.classList.add('wrong');
+            Array.from(buttons).forEach(b => {
+                if(b.innerText === correct) b.classList.add('correct');
+            });
+        }
+        setTimeout(() => { currentIndex++; loadQuestion(); }, 1000); 
+    }
+
+    function showReport() { 
+        document.getElementById('quiz-screen').classList.add('hidden'); 
+        document.getElementById('report-screen').classList.remove('hidden'); 
+        let per = Math.round((score / quizSet.length) * 100); 
+        document.getElementById('final-score').innerText = per + "%"; 
+        document.getElementById('stat-correct').innerText = score;
+        document.getElementById('stat-wrong').innerText = quizSet.length - score;
+        
+        // Result screen par Interstitial ad dikhayen
+        showInterstitial(); 
+    }
+</script>
+</body>
+</html>
